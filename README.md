@@ -1,8 +1,6 @@
-# Code for Global AMR project
+# Global AMR project
 
-# Directory structure
-
-# AMR Gender Analysis Repository Structure
+## AMR Gender Analysis Repository Structure
 
 AMR-Gender-Analysis/  
 ├── **DATA/**                         # Store raw and processed data (avoid storing sensitive or large data)  
