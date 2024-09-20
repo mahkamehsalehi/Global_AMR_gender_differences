@@ -1,30 +1,27 @@
-# This README file describes the different data sources in DATA
+### This README file describes the different data sources in DATA
 Subdirectories PROCESSED and RAW and their contents are in .gitignore. These contain large output files.
 
-# Sra_metadata_jun11.txt
+### Sra_metadata_jun11.txt
 Sra metadata fetched based on fastq file accessions which were downloaded for the project.  
 Created using bigquery_metadata_query.sh
 
-# Classified_Sra_meta_data_jun11.tct
+### Classified_Sra_meta_data_jun11.tct
 Sra metadata with classfications of projects based on bioproject.
 Created using fecth_abstracts.py.
 
-# gene_length.csv
-
+### gene_length.csv
 Resfinder ARG gene lenghts in basepairs. Calculated using bash script.
 
-# Resfinder phenotypes
-
+### resfinder_phenotypes.txt
 Resinfinder phenotypes file downloaded with the ResFinder database v. 2.1.1
 
-# data.csv
-
+### data.csv
 Country level data with antibiotic resistance, infrasctructure, antibiotic use, socio-economics, climate etc from Anthropological and socioeconomic factors contributing to global antimicrobial resistance: a univariate and multivariable analysis.
 Collignon, Peter et al.
 The Lancet Planetary Health, Volume 2, Issue 9, e398 - e405
 https://doi.org/10.1016/S2542-5196(18)30186-4
 
-# Total antibiotic_consumption_estimates.csv
+### Total antibiotic_consumption_estimates.csv
 Estimated antibiotuc consumption data from https://www.tropicalmedicine.ox.ac.uk/gram/research/visualisation-app-antibiotic-usage-and-consumption 
 Using year 2016.
 Global antibiotic consumption and usage in humans, 2000–18: a spatial modelling study.
