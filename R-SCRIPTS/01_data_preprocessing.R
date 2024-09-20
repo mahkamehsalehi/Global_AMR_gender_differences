@@ -1,5 +1,6 @@
 # This need to be run just once to create the TSE object. Re-run if modifications to metadata are made
 # TODO # Add the antibiotic use from 2016.
+# TODO # Run the ordinations from lines 228 onwards.
 
 rm(list  = ls())
 # Load necessary libraries
