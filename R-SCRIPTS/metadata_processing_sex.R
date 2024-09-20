@@ -4,7 +4,10 @@ library(jsonlite)
 library(data.table)
 library(progress)
 
+source("R-SCRIPTS/00_functions.R")
 
+# Do not run, slow
+# Downlaods Sra metadata file that also has the attributes field and processes it.
 #df <- read_csv("DATA/RAW/Sra_metadata_jun12_attributes.txt")
 
 #df <- df %>%
@@ -17,6 +20,7 @@ library(progress)
 
 #write_csv(df, "DATA/PROCESSED/Sra_metadata_processed.csv")
 
+# Load in processed data
 df <- read_csv("DATA/PROCESSED/Sra_metadata_processed.csv") 
 
 sex_columns <- grep("sex", names(df), value = TRUE, ignore.case = TRUE)
@@ -78,21 +82,6 @@ df_selected <- df_selected %>%
 df_selected <- df_selected %>%
   mutate(host_age_years = mapply(convert_to_years, host_age_sam, project_uses_days))
 
-# Function to calculate the mean from a range
-calculate_mean_from_range <- function(range) {
-  # Split the range into lower and upper bounds
-  bounds <- str_split(range, "-", simplify = TRUE)
-  
-  # Convert bounds to numeric
-  lower_bound <- as.numeric(bounds[1])
-  upper_bound <- as.numeric(bounds[2])
-  
-  # Calculate the mean
-  mean_value <- (lower_bound + upper_bound) / 2
-  
-  return(mean_value)
-}
-
 # Apply the function and replace values in `host_age_years`
 df_selected <- df_selected %>%
   mutate(host_age_years = ifelse(!is.na(host_age_5yr_bin_sam),
@@ -102,5 +91,16 @@ df_selected <- df_selected %>%
 df_selected$host_age_years %>% summary
 
 # Remove gestational week samples
-# TODO # Remove gestational week samples
-# "cGA_Weeks"
+df_selected <- df_selected %>%
+  mutate(
+    host_age_years = ifelse(grepl("cGA_Weeks", host_age_sam), NA, host_age_years)
+  )
+
+# Remove unused columns
+age_columns <-  grep("age", names(df_selected), value = TRUE, ignore.case = TRUE) 
+
+age_columns <- age_columns[age_columns != "host_age_years"]
+
+# Remove extra age_columns
+
+df_selected <- df_selected %>% dplyr::select(-c(age_columns, "project_uses_days"))

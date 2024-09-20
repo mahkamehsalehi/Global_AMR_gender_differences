@@ -38,3 +38,21 @@ convert_to_years <- function(age, project_uses_days) {
 
 ########
 
+
+###########
+# Function to calculate the mean from a range
+calculate_mean_from_range <- function(range) {
+  # Split the range into lower and upper bounds
+  bounds <- str_split(range, "-", simplify = TRUE)
+  
+  # Convert bounds to numeric
+  lower_bound <- as.numeric(bounds[1])
+  upper_bound <- as.numeric(bounds[2])
+  
+  # Calculate the mean
+  mean_value <- (lower_bound + upper_bound) / 2
+  
+  return(mean_value)
+}
+############
+

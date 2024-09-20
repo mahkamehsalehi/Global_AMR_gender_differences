@@ -1,3 +1,6 @@
+# This need to be run just once to create the TSE object. Re-run if modifications to metadata are made
+# TODO # Add the antibiotic use from 2016.
+
 rm(list  = ls())
 # Load necessary libraries
 require(tidyverse)
@@ -26,10 +29,8 @@ metadata <- fread("DATA/Sra_metadata_jun11.txt", header = TRUE, sep = ",")
 # Create gender and age columns for metadata
 source("R-SCRIPTS/metadata_processing_sex.R")
 
-
 # Merge with other metadata
 tmp<-merge(df_selected, metadata)
-
 
 metadata <- tmp
 
@@ -206,33 +207,7 @@ source("R-SCRIPTS/metadata_processing_bioproject.R")
 # Save the TreeSummarizedExperiment object
 saveRDS(TSE, file="DATA/TSE.rds")
 
-
-## ---------- Checks -------------
-# gene_expression_data_FR <- fread("../FR_metagenomes/RESULTS/final_output_files/ARG_genemat.txt", header = TRUE, sep = "\t")
-# gene_expression_data_FR <- gene_expression_data_FR[,3:8090]
-# read_counts_FR <-  data.frame(read.table("../FR_metagenomes/RESULTS/final_output_files/read_counts_table", row.names  = 1))/1000000
-# read_counts_subs <- dplyr::filter(read_counts_FR, row.names(read_counts_FR) %in% colnames(gene_expression_data_FR))
-# df <- merge(colSums(gene_expression_data_FR), read_counts_subs, by = 0) 
-# df$SUM_norm <-df$x/df$V2
-# 
-# genelengths <- read.csv("../FR_metagenomes//R/genelengths.csv")
-# 
-# 
-# ARG_bt_res_length_norm <- gene_expression_data_FR/genelengths[,3]*1000
-# colSums(ARG_bt_res_length_norm) %>% summary
-# colSums(ARG_bt_res_length_norm)/read_counts_subs
-# 
-# colSums(rpk_values) %>% summary()
-# summary(colSums(rpk_values)/filtered_metadata$readcount)
-# 
-# tmp <- dplyr::filter(filtered_metadata, filtered_metadata$acc %in% colnames(normalized_assay[-1]))
-# df_80 <- data.frame(x = colSums(normalized_assay[-1],), read_counts = tmp$readcount)
-# df_80$SUM_norm <- df_80$x/df_80$read_counts
-# 
-# 
-# df2 <- data.frame(x=colSums(rpk_values))
-# df2$read_count <- library_sizes
-# df2$Sum_norm <- df2$x/df2$read_count
+## TODO ##
 
 # ## ---------- Ordinations ------------
 # Run on CSC
