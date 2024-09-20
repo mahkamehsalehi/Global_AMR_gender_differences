@@ -27,3 +27,7 @@ Using year 2016.
 Global antibiotic consumption and usage in humans, 2000–18: a spatial modelling study.
 Browne, Annie et al.
 The Lancet Planetary Health Volume 5, Issue 12, December 2021, Pages e893-e904
+
+### Trip_distribution_matrix.
+
+Trip distribution data from Peter Collignon and John Beggs. See First cut at AMR burden of Travel.docs
