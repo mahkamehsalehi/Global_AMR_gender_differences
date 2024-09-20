@@ -22,7 +22,7 @@ def fetch_bioproject_info(bioproject_number):
 
 # Load your metadata file
 print("Loading metadata file...")
-metadata_df = pd.read_csv("Sra_metadata_jun11.txt", sep=',')
+metadata_df = pd.read_csv("../DATA/Sra_metadata_jun11.txt", sep=',')
 
 # Get unique bioprojects
 print("Extracting unique bioprojects...")
@@ -80,19 +80,19 @@ def classify_bioproject(abstract):
                 print(f"Debug: Abstract Text: {abstract_text}")
 
                 # Infant Study
-                if re.search(r'infants?|neonates?|newborns?', abstract_text):
+                if re.search(r'infants?|first year of life|neonates?|newborns?|baby|babies|preterms?', abstract_text):
                     return 'Infant Study'
                 # Infection-related keywords (including CDI, Clostridioides difficile, FMT with infection)
-                elif re.search(r'infection|pathogen|virus|bacteria|cre|clostridium difficile|clostridioides difficile|vibrio cholerae|salmonella|diarrhea|blood stream infection|urinary infection|traveler\'s diarrhea|fmt with infection|icu patient|campylobacter|cdi', abstract_text):
+                elif re.search(r'infections?|covid|pathogens?|virus|cre|clostridium difficile|clostridioides difficile|vibrio cholerae|salmonella|diarrhea|covid19??|fmt with infection|icu patient|campylobacter|cdi', abstract_text):
                     return 'Infection'
                 # Cancer-related keywords
-                elif re.search(r'cancer|tumor|oncology|colorectal cancer|breast cancer|neuroblastoma|leukemia|melanoma|pancreatic cancer', abstract_text):
+                elif re.search(r'cancer|crc|tumor|oncology|colorectal cancer|breast cancer|neuroblastoma|leukemia|melanoma|pancreatic cancer', abstract_text):
                     return 'Cancer'
                 # Immune Deficiency-related keywords
                 elif re.search(r'immune deficiency|immunodeficiency|immunocompromised|hematopoietic cell transplantation|marrow transplant|stem cell transplant', abstract_text):
                     return 'Immune Deficiency'
                 # Other diseases
-                elif re.search(r'fmt(?! with infection)|ibd|chaple disease|short bowel syndrome|hepatic encephalopathy|crohn\'s disease|ulcerative colitis|colitis', abstract_text):
+                elif re.search(r'fmt(?! with infection)|microbiota transplant|inflammatory bowel disease|ibd|chaple disease|short bowel syndrome|hepatic encephalopathy|crohn\'s disease|ulcerative colitis|colitis', abstract_text):
                     return 'Other Disease'
                 else:
                     return 'Other'
@@ -105,7 +105,7 @@ metadata_df["category"] = metadata_df["abstract"].apply(classify_bioproject)
 
 # Save the classified data to a new file
 print("Saving classified data to 'classified_Sra_metadata_jun11.txt'...")
-metadata_df.to_csv('classified_Sra_metadata_jun11.txt', sep=',', index=False)
+metadata_df.to_csv('../DATA/classified_Sra_metadata_jun11.txt', sep=',', index=False)
 
 print("Processing complete. Here are the first few entries:")
 print(metadata_df[['bioproject', 'category']].head())
