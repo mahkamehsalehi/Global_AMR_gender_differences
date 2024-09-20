@@ -21,7 +21,7 @@ Collignon, Peter et al.
 The Lancet Planetary Health, Volume 2, Issue 9, e398 - e405
 https://doi.org/10.1016/S2542-5196(18)30186-4
 
-### Total antibiotic_consumption_estimates.csv
+### total_antibiotic_consumption_estimates.csv
 Estimated antibiotuc consumption data from https://www.tropicalmedicine.ox.ac.uk/gram/research/visualisation-app-antibiotic-usage-and-consumption 
 Using year 2016.
 Global antibiotic consumption and usage in humans, 2000–18: a spatial modelling study.
