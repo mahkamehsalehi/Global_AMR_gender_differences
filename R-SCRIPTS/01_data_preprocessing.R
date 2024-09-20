@@ -208,6 +208,7 @@ source("R-SCRIPTS/metadata_processing_bioproject.R")
 # Save the TreeSummarizedExperiment object
 saveRDS(TSE, file="DATA/TSE.rds")
 
+rm(list  = ls())
 ## TODO ##
 
 # ## ---------- Ordinations ------------
