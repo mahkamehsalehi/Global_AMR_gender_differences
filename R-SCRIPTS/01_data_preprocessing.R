@@ -145,11 +145,11 @@ tree_summarized_experiment <- TreeSummarizedExperiment(
   rowData = DataFrame(tax)
 )
 
-# # Save the TreeSummarizedExperiment object
+# Save the TreeSummarizedExperiment object
 saveRDS(tree_summarized_experiment, file="DATA/TSE.rds")
 
 rm(list  = ls())
-# 
+
 TSE <- readRDS("DATA/TSE.rds")
 
 ## -------- Filtering ----------------
@@ -203,12 +203,18 @@ filtered_samples <- filtered_data %>% rownames()
 
 TSE <- TSE[,filtered_samples]
 
+# Add bioproject based category
 source("R-SCRIPTS/metadata_processing_bioproject.R")
+
+# Add alternative antibiotic use data
+source("R-SCRIPTS/metadata_processing_antibiotic_use.R")
 
 # Save the TreeSummarizedExperiment object
 saveRDS(TSE, file="DATA/TSE.rds")
 
 rm(list  = ls())
+
+
 ## TODO ##
 
 # ## ---------- Ordinations ------------
