@@ -22,13 +22,13 @@ cat("Number of common samples:", length(common_samples), "\n")
 ab_use_filtered <- ab_use %>%
   filter(acc %in% common_samples)
 
-ab_use_filtered <- dplyr::rename(ab_use_filtered, Bayesian_usage = antibiotic_consumption)
+ab_use_filtered <- dplyr::rename(ab_use_filtered, usage_bayesian = antibiotic_consumption)
 
 tse_coldata <- as.data.frame(colData(tse))
 
-# Add Bayesian_usage to tse_coldata
+# Add usage_bayesian to tse_coldata
 merged_coldata <- tse_coldata %>%
-  left_join(ab_use_filtered %>% select(acc, Bayesian_usage), by = "acc")
+  left_join(ab_use_filtered %>% select(acc, usage_bayesian), by = "acc")
 
 # Preserve rownames
 rownames(merged_coldata) <- rownames(tse_coldata)
@@ -39,5 +39,5 @@ colData(tse) <- DataFrame(merged_coldata)
 #saveRDS(tse, file = "TSE_AB_estimate.rds")
 
 # Check for missing values
-num_missing <- sum(is.na(colData(tse)$Bayesian_usage))
+num_missing <- sum(is.na(colData(tse)$usage_bayesian))
 cat("Number of samples without Bayesian_usage data:", num_missing, "\n")
