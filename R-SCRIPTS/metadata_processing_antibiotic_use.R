@@ -2,7 +2,7 @@ library(tidyquant)
 library(tidyverse)
 library(SummarizedExperiment)
 
-
+source("R-SCRIPTS/metadata_processing_sex.R")
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -25,24 +25,12 @@ data_2016 <- read_csv("DATA/total_antibiotic_consumption_estimates.csv") %>%
 
 data_2016_subset <- data_2016[, c("country", "antibiotic_consumption")]
 
-
-
-
 global_data_2016 <- merge(df_selected, data_2016_subset, by = "country")
-write.csv(global_data_2016, "global_data_2016.csv")
+#write.csv(global_data_2016, "global_data_2016.csv")
 
 
 
 g_data_2016 <- read_csv("global_data_2016.csv")
-
-female_data <- subset(g_data_2016, host_sex_sam == "female" | sex_calc == "female") %>%
-  select(-sex_calc, -host_sex_sam, -collection_date_sam, -...1) %>%
-  rename(region = geo_loc_name_country_continent_calc)
-
-both_gender_data <- subset(g_data_2016, host_sex_sam == "female" | host_sex_sam == "male"| sex_calc == "female" | sex_calc == "male") %>%
-  select(-sex_calc, -host_sex_sam, -collection_date_sam, -...1) %>%
-  rename(region = geo_loc_name_country_continent_calc)
-
 
 
 ab_use <- g_data_2016 <- read_csv("global_data_2016.csv")
@@ -70,7 +58,3 @@ rownames(merged_coldata) <- rownames(tse_coldata)
 colData(tse) <- DataFrame(merged_coldata)
 
 #saveRDS(tse, file = "TSE_AB_estimate.rds")
-
-# Check for missing values
-num_missing <- sum(is.na(colData(tse)$usage_bayesian))
-cat("Number of samples without Bayesian_usage data:", num_missing, "\n")
