@@ -116,8 +116,6 @@ cat("R-squared on test data:", r_squared, "\n")
 # Feature Importance
 importance_matrix <- xgb.importance(feature_names = colnames(train_matrix), model = model_xgb)
 print(importance_matrix)
-xgb.plot.importance(importance_matrix, top_n = 5)
-
 
 #-----------------
 # Cross-Validation
@@ -210,9 +208,9 @@ cat("Final R-squared on test data:", final_r_squared, "\n")
 
 # Feature Importance for the final model
 final_importance <- xgb.importance(feature_names = colnames(train_matrix), model = final_model)
-xgb.plot.importance(final_importance, top_n = 10)
 
 # Variable Importance from caret model
 var_imp_caret <- varImp(model_caret, scale = FALSE)
 print(var_imp_caret)
-plot(var_imp_caret, top = 10, main = "Variable Importance - caret Model")
+
+#saveRDS(final_model, "final_xgb_model.rds")
