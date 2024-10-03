@@ -10,7 +10,40 @@ library(SummarizedExperiment)
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-#source("scripts/01_data_preprocessing.R")
+data_2016 <- read_csv("DATA/total_antibiotic_consumption_estimates.csv") %>%
+  subset(Year ==2016) %>%
+  mutate(Location = case_when(
+    Location == "United States" ~ "USA",
+    Location == "South Korea" ~ "South Korea",
+    Location == "Congo" ~ "Democratic Republic of the Congo",
+    Location == "Bahamas" ~ "The Bahamas",
+    Location == "Gambia" ~ "The Gambia",
+    TRUE ~ Location
+  )) %>%
+  dplyr::rename(country = Location) %>%
+  dplyr::rename(antibiotic_consumption = `Antibiotic consumption (DDD/1,000/day)`)
+
+data_2016_subset <- data_2016[, c("country", "antibiotic_consumption")]
+
+
+
+
+global_data_2016 <- merge(df_selected, data_2016_subset, by = "country")
+write.csv(global_data_2016, "global_data_2016.csv")
+
+
+
+g_data_2016 <- read_csv("global_data_2016.csv")
+
+female_data <- subset(g_data_2016, host_sex_sam == "female" | sex_calc == "female") %>%
+  select(-sex_calc, -host_sex_sam, -collection_date_sam, -...1) %>%
+  rename(region = geo_loc_name_country_continent_calc)
+
+both_gender_data <- subset(g_data_2016, host_sex_sam == "female" | host_sex_sam == "male"| sex_calc == "female" | sex_calc == "male") %>%
+  select(-sex_calc, -host_sex_sam, -collection_date_sam, -...1) %>%
+  rename(region = geo_loc_name_country_continent_calc)
+
+
 
 ab_use <- g_data_2016 <- read_csv("global_data_2016.csv")
 tse <- readRDS("TSE.rds")
