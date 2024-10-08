@@ -531,7 +531,7 @@ ggsave("scatter_plot_ARG_GDP_gender.png", plot = scatter_plot_arg_gdp, width = 1
 
 df_infra <- df %>%
   select(sex_combined,Infrastructure_Index,log10_ARG_load) %>%
-  filter(!is.na(sex_combined, is!filter(Infrastructure_Index)))
+  filter(!is.na(sex_combined, !is.na(Infrastructure_Index))
 
 scatter_plot_arg_infra <- ggplot(df_infra, aes(x = Infrastructure_Index, y = log10_ARG_load)) +
   geom_point(color = "black", alpha = 0.4, size = 2) +
