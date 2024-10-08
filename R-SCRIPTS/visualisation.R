@@ -497,19 +497,6 @@ ggsave("scatter_ARG_load_age_income_group.png", width = 12, height = 8)
 
 
 
-#------------------
-# Data Preparation
-#------------------
-
-df_vis <- df %>%
-  select(sex_combined, 
-         host_age_years, 
-         GDP_per_head, 
-         log10_ARG_load, 
-         Infrastructure_Index,
-         Usage) %>%
-  drop_na()
-
 #-------------------------------------------------------------------------------
 #------------------- Scatter Plot of ARG Load vs GDP per head  -----------------
 #-------------------------------------------------------------------------------
