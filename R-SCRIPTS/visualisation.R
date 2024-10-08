@@ -1,5 +1,7 @@
-library(ggplot2)
-library(dplyr)
+wd <- "/scratch/project_2008149/USER_WORKSPACES/mahkameh/women_amr/"
+setwd(wd)
+
+library(tidyverse)
 library(ggpubr)
 library(rnaturalearth)
 library(rnaturalearthdata)
@@ -8,9 +10,8 @@ library(corrplot)
 library(reshape2)
 
 # Convert colData to a data frame
-tse_gender <- tse[, !is.na(colData(tse)$sex_combined)]
-df <- as.data.frame(colData(tse_gender))
-
+tse <- readRDS("TSE_AB_estimate.rds")
+df <- as.data.frame(colData(tse))
 #-------------------------------------------------------------------------------
 #--------------------------- Box Plot by Income Group --------------------------
 #-------------------------------------------------------------------------------
@@ -513,10 +514,14 @@ df_vis <- df %>%
 #------------------- Scatter Plot of ARG Load vs GDP per head  -----------------
 #-------------------------------------------------------------------------------
 
-scatter_plot_arg_gdp <- ggplot(df_vis, aes(x = GDP_per_head, y = log10_ARG_load, color = host_age_years)) +
-  geom_point(alpha = 0.4, size = 2) +
-  geom_smooth(aes(group = sex_combined, linetype = sex_combined), method = "loess", se = TRUE, color = "black") +
-  scale_color_viridis_c(option = "plasma") +
+df_gdp <- df %>%
+  select(sex_combined, host_age_years, GDP_per_head, log10_ARG_load) %>%
+  filter(!is.na(sex_combined), !is.na(GDP_per_head))
+
+scatter_plot_arg_gdp <- ggplot(df_gdp, aes(x = GDP_per_head, y = log10_ARG_load)) +
+  geom_point(color = "black", alpha = 0.4, size = 2) +
+  geom_smooth(aes(color = sex_combined), method = "loess", se = TRUE) +
+  scale_color_manual(values = c("male" = "blue", "female" = "red")) +
   labs(
     title = "log10 ARG Load vs. GDP per Head by Gender and Age",
     x = "GDP per Head (USD)",
@@ -530,17 +535,21 @@ scatter_plot_arg_gdp <- ggplot(df_vis, aes(x = GDP_per_head, y = log10_ARG_load,
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
-ggsave("scatter_plot_ARG_load_GDP_age_gender.png", plot = scatter_plot_arg_gdp, width = 10, height = 6)
+ggsave("scatter_plot_ARG_GDP_gender.png", plot = scatter_plot_arg_gdp, width = 10, height = 6)
 
 
 #-------------------------------------------------------------------------------
 #--------------- Scatter Plot of ARG Load vs Infrastructure Index  -------------
 #-------------------------------------------------------------------------------
 
-scatter_plot_arg_infra <- ggplot(df_vis, aes(x = Infrastructure_Index, y = log10_ARG_load, color = host_age_years)) +
-  geom_point(alpha = 0.4, size = 2) +
-  geom_smooth(aes(group = sex_combined, linetype = sex_combined), method = "loess", se = TRUE, color = "black") +
-  scale_color_viridis_c(option = "plasma") +
+df_infra <- df %>%
+  select(sex_combined,Infrastructure_Index,log10_ARG_load) %>%
+  filter(!is.na(sex_combined, is!filter(Infrastructure_Index)))
+
+scatter_plot_arg_infra <- ggplot(df_infra, aes(x = Infrastructure_Index, y = log10_ARG_load)) +
+  geom_point(color = "black", alpha = 0.4, size = 2) +
+  geom_smooth(aes(color = sex_combined), method = "loess", se = TRUE) +
+  scale_color_manual(values = c("male" = "blue", "female" = "red")) +
   labs(
     title = "log10 ARG Load vs. Infrastructure Index by Gender and Age",
     x = "Infrastructure Index",
@@ -554,16 +563,20 @@ scatter_plot_arg_infra <- ggplot(df_vis, aes(x = Infrastructure_Index, y = log10
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
-ggsave("scatter_plot_ARG_load_infra_age_gender.png", plot = scatter_plot_arg_infra, width = 10, height = 6)
+ggsave("scatter_plot_ARG_infra_gender.png", plot = scatter_plot_arg_infra, width = 10, height = 6)
 
 #-------------------------------------------------------------------------------
 #----------------------- Scatter Plot of ARG Load vs Usage ---------------------
 #-------------------------------------------------------------------------------
 
-scatter_plot_arg_usage <- ggplot(df_vis, aes(x = Usage, y = log10_ARG_load, color = host_age_years)) +
-  geom_point(alpha = 0.4, size = 2) +
-  geom_smooth(aes(group = sex_combined, linetype = sex_combined), method = "loess", se = TRUE, color = "black") +
-  scale_color_viridis_c(option = "plasma") +
+df_usage <- df %>%
+  select(sex_combined, Usage, log10_ARG_load) %>%
+  filter(!is.na(sex_combined), !is.na(Usage))
+
+scatter_plot_arg_usage <- ggplot(df_usage, aes(x = Usage, y = log10_ARG_load)) +
+  geom_point(color = "black", alpha = 0.4, size = 2) +
+  geom_smooth(aes(color = sex_combined), method = "loess", se = TRUE) +
+  scale_color_manual(values = c("male" = "blue", "female" = "red")) +
   labs(
     title = "log10 ARG Load vs. Antibiotic Consumption by Gender and Age",
     x = "Antibiotic Consumption",
@@ -577,7 +590,7 @@ scatter_plot_arg_usage <- ggplot(df_vis, aes(x = Usage, y = log10_ARG_load, colo
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
-ggsave("scatter_plot_ARG_load_usage_age.png", plot = scatter_plot_arg_usage, width = 10, height = 6)
+ggsave("scatter_plot_ARG_usage_gender.png", plot = scatter_plot_arg_usage, width = 10, height = 6)
 
 #-------------------------------------------------------------------------------
 #------------- Scatter Plot of ARG Load vs Usage Bayesian Estimate -------------
@@ -585,12 +598,12 @@ ggsave("scatter_plot_ARG_load_usage_age.png", plot = scatter_plot_arg_usage, wid
 
 df_bayes <- df %>%
   select(log10_ARG_load, sex_combined, usage_bayesian, host_age_years) %>%
-  drop_na()
+  filter(!is.na(sex_combined))
 
-scatter_plot_arg_use_bayes <- ggplot(df_bayes, aes(x = usage_bayesian, y = log10_ARG_load, color = host_age_years)) +
-  geom_point(alpha = 0.4, size = 2) +
-  geom_smooth(aes(group = sex_combined, linetype = sex_combined), method = "loess", se = TRUE, color = "black") +
-  scale_color_viridis_c(option = "plasma") +
+scatter_plot_arg_use_bayes <- ggplot(df_bayes, aes(x = usage_bayesian, y = log10_ARG_load)) +
+  geom_point(color = "black", alpha = 0.4, size = 2) +
+  geom_smooth(aes(color = sex_combined), method = "loess", se = TRUE) +
+  scale_color_manual(values = c("male" = "blue", "female" = "red")) +
   labs(
     title = "log10 ARG Load vs. Antibiotic Consumption Estimate (Bayesian) by Gender and Age",
     x = "Antibiotic Consumption Estimate (Bayesian)",
@@ -604,7 +617,7 @@ scatter_plot_arg_use_bayes <- ggplot(df_bayes, aes(x = usage_bayesian, y = log10
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
-ggsave("scatter_plot_ARG_load_usage_age_bayesian.png", plot = scatter_plot_arg_use_bayes, width = 10, height = 6)
+ggsave("scatter_plot_ARG_usage_bayesian_gender.png", plot = scatter_plot_arg_use_bayes, width = 10, height = 6)
 
 
 
