@@ -4,20 +4,29 @@ df <- colData(TSE) %>% as.data.frame()
 
 # Plot age gender by bioproject category
 plot_df <- df %>%
-  select(matches(c("sex_combined", "log10_ARG_load", "host_age_years", "category")))
+  select(matches(c("sex_combined", "log10_ARG_load", "host_age_years", "category", "World_Bank_Income_Group")))
 # Create the plot, removing NA values from host_age_years
 ggplot(na.omit(plot_df), aes(x = host_age_years, y = log10_ARG_load, color = sex_combined)) +
   geom_jitter(size = 0.1, width = 0.1) +
   geom_smooth(method = "lm") +
   scale_x_continuous(breaks = c(0,1,3,5,10,15,20,25,30,40,50,60,70,80))+
   theme_classic() +
-  facet_grid(cols=vars(category))
+  facet_grid(cols=vars(World_Bank_Income_Group))
 
 
 ggplot(na.omit(plot_df), aes(x = host_age_years, y = log10_ARG_load, color = sex_combined)) +
   geom_jitter(size = 0.1, width = 0.1) +
   geom_smooth(method = "loess") +
   scale_x_continuous(breaks = c(0,1,3,5,10,15,20,25,30,40,50,60,70,80))+
-  theme_classic() +
-  facet_grid(cols=vars(category))
+  theme_classic()
 
+ggplot(na.omit(df[df$host_age_years>20,]), aes(x = GDP_per_head, y = log10_ARG_load, color = sex_combined)) +
+  geom_jitter(size = 0.1, width = 0.1) +
+  geom_smooth(method = "loess") +
+  scale_x_continuous(breaks = c(0,1,3,5,10,15,20,25,30,40,50,60,70,80))+
+  theme_classic() 
+library(jtools)
+fit <- aov(log10_ARG_load~category, data=df) 
+
+glm(log10_ARG_load~Usage+Corruption_and_Governance_Index, data=df)  %>% summary()
+                                   
