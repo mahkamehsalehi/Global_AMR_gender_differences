@@ -100,4 +100,6 @@ ggplot(pcoa_data, aes(x = PC1, y = PC2, color = sex_combined)) +
  # Step 8: Print the PERMANOVA result
  print(permanova_result)
  
+ # Save permanova_result as an RDS file
+ saveRDS(permanova_result, file = "permanova_result.rds")
  
