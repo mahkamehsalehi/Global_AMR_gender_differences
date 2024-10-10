@@ -1,6 +1,3 @@
-wd <- "/scratch/project_2008149/USER_WORKSPACES/mahkameh/women_amr/"
-setwd(wd)
-
 library(tidyverse)
 library(ggpubr)
 library(rnaturalearth)
@@ -10,7 +7,7 @@ library(corrplot)
 library(reshape2)
 
 # Convert colData to a data frame
-tse <- readRDS("TSE_AB_estimate.rds")
+tse <- readRDS("DATA/processed/TSE_AB_estimate.rds")
 df <- as.data.frame(colData(tse))
 #-------------------------------------------------------------------------------
 #--------------------------- Box Plot by Income Group --------------------------
