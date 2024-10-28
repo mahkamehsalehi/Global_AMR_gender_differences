@@ -1,12 +1,7 @@
-# Set Working Directory
-setwd("/scratch/project_2008149/USER_WORKSPACES/mahkameh/women_amr/")
-
-# Load Necessary Libraries
 library(tidyverse)
 library(vegan)
 library(scater)
 
-# Load the TSE Object
 TSE <- readRDS("TSE.rds")
 
 # ---------------------------
@@ -38,22 +33,15 @@ TSE_female <- TSE_filtered[, colData(TSE_filtered)$sex_combined == "female"]
 # Step 3: Create Detailed Age Groups for Females
 # ---------------------------
 
-age_labels <- c(
-  "Infant",           # 0-1 year
-  "Toddler",          # 1-3 years
-  "Preschooler",      # 3-6 years
-  "School-age",       # 6-12 years
-  "Teen",             # 12-18 years
-  "Young Adult",      # 18-35 years
-  "Middle Adulthood", # 35-65 years
-  "Older Adult"       # 65-100 years
-)
+# Define age labels
+age_labels <- c("Infant", "Toddler", "Kids", "Adult")
 
+# Create detailed age groups using the defined labels
 female_samples <- female_samples %>%
   mutate(
     age_group = cut(
       host_age_years,
-      breaks = c(0, 1, 3, 6, 12, 18, 100),
+      breaks = c(0, 1, 3, 18, 100),
       labels = age_labels,
       right = FALSE,
       include.lowest = TRUE
@@ -77,7 +65,7 @@ distance_matrix_female <- vegdist(t(assay_data_female), method = "bray")
 # Step 5: Perform PCoA
 # ---------------------------
 
-# Run PCoA using Bray-Curtis distances
+# Run Principal Coordinates Analysis (PCoA) using Bray-Curtis distances
 TSE_female <- runMDS(
   TSE_female,
   FUN = vegan::vegdist,
@@ -94,10 +82,12 @@ TSE_female <- runMDS(
 # Extract the reduced dimensions (PCoA coordinates)
 pcoa_female_data <- as.data.frame(reducedDim(TSE_female, "PCoA"))
 
-# Rename columns to PC1, PC2
+# Rename columns to PC1, PC2, etc.
 colnames(pcoa_female_data) <- paste0("PC", 1:ncol(pcoa_female_data))
 
 # Add age group and region information to the PCoA data frame
+# Ensure that the order of 'female_samples' matches 'pcoa_female_data'
+# If not, use unique identifiers to merge appropriately
 pcoa_female_data$age_group <- female_samples$age_group
 pcoa_female_data$geo <- female_samples$geo_loc_name_country_continent_calc
 
@@ -128,11 +118,14 @@ pcoa_female_data_clean <- pcoa_female_data %>%
 # ---------------------------
 # Step 9: Plot the PCoA (Colored by Age Group and Faceted by Region)
 # ---------------------------
+library(RColorBrewer)
+age_palette <- brewer.pal(n = length(age_labels), name = "Set2")
 
 # Create the PCoA plot
 pcoa_plot <- ggplot(pcoa_female_data_clean, aes(x = PC1, y = PC2, color = age_group)) +
-  geom_point(size = 3, alpha = 0.8) +
+  geom_point(size = 2, alpha = 0.8) +
   facet_wrap(~ geo, nrow = 2) +
+  scale_color_manual(values = age_palette) +
   labs(
     title = "PCoA Plot (Beta Diversity - Bray-Curtis) for Females by Region",
     x = paste0("PC1 (", round(percent_var_PC1_female, 2), "%)"),
@@ -147,7 +140,7 @@ pcoa_plot <- ggplot(pcoa_female_data_clean, aes(x = PC1, y = PC2, color = age_gr
     legend.title = element_text(face = "bold", size = 14),
     legend.text = element_text(size = 12),
     legend.position = "right",
-    strip.text = element_text(face = "bold", size = 12)  # Facet labels
+    strip.text = element_text(face = "bold", size = 12)
   )
 
 # Display the PCoA Plot
@@ -164,6 +157,13 @@ metadata <- pcoa_female_data_clean %>%
 # ---------------------------
 # Step 11: Run PERMANOVA (adonis2)
 # ---------------------------
+# Convert the condensed distance vector to a square matrix
+distance_matrix_female <- as.matrix(distance_matrix_female)
+
+# Subset the distance matrix to match samples in metadata
+common_samples <- intersect(rownames(distance_matrix_female), rownames(metadata))
+distance_matrix_female <- distance_matrix_female[common_samples, common_samples]
+metadata <- metadata[common_samples, ]
 
 # Test whether regions (geo) significantly explain the differences in beta diversity
 permanova_region <- adonis2(
@@ -193,5 +193,15 @@ print(permanova_region)
 print("PERMANOVA Results for Age Groups:")
 print(permanova_age)
 
+# ---------------------------
+# Optional: Save the PCoA Plot
+# ---------------------------
 
-
+ggsave(
+  filename = "PCoA_Female_AgeGroup_Region.png",
+  plot = pcoa_plot,
+  width = 12,
+  height = 8,
+  units = "in",
+  dpi = 300
+)
