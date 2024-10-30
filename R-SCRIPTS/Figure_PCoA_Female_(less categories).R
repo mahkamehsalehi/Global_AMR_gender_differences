@@ -1,6 +1,8 @@
 library(tidyverse)
 library(vegan)
 library(scater)
+install.packages("rstatix")
+
 
 TSE <- readRDS("TSE.rds")
 
