@@ -202,9 +202,8 @@ glm_diversity <- glm(
 )
 summary(glm_diversity)
 
-# GLM for log10_ARG_load (if available)
-if ("log10_ARG_load" %in% colnames(adult_metadata)) {
-  glm_arg_load <- glm(
+# GLM for log10_ARG_load
+glm_arg_load <- glm(
     log10_ARG_load ~ sex_combined + age_category + region + GDP_per_head + Usage,
     data = adult_metadata,
     family = gaussian()
