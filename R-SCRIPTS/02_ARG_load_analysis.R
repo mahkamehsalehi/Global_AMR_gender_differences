@@ -14,19 +14,28 @@ ggplot(na.omit(plot_df), aes(x = host_age_years, y = log10_ARG_load, color = sex
   facet_grid(cols=vars(World_Bank_Income_Group))
 
 
+
+
 ggplot(na.omit(plot_df), aes(x = host_age_years, y = log10_ARG_load, color = sex_combined)) +
   geom_jitter(size = 0.1, width = 0.1) +
   geom_smooth(method = "loess") +
   scale_x_continuous(breaks = c(0,1,3,5,10,15,20,25,30,40,50,60,70,80))+
   theme_classic()
 
-ggplot(na.omit(df[df$host_age_years>20,]), aes(x = GDP_per_head, y = log10_ARG_load, color = sex_combined)) +
+
+df <- colData(TSE_gender) %>% as.data.frame()
+tmp<-df[df$category!="Infant Study",]
+tmp <- tmp[tmp$geo_loc_name_country_calc!="Zimbabwe",]
+ggplot(tmp, aes(x = Usage, y = log10_ARG_load, color = sex_combined)) +
   geom_jitter(size = 0.1, width = 0.1) +
   geom_smooth(method = "loess") +
-  scale_x_continuous(breaks = c(0,1,3,5,10,15,20,25,30,40,50,60,70,80))+
   theme_classic() 
+
 library(jtools)
 fit <- aov(log10_ARG_load~category, data=df) 
 
-glm(log10_ARG_load~Usage+Corruption_and_Governance_Index, data=df)  %>% summary()
-                                   
+tmp<-df[df$category!="Infant Study",]
+tmp <- df[df$geo_loc_name_country_calc!="Zimbawe",]
+glm(ARG_div ~ sex_combined, data = df) %>% 
+  summ(exp = TRUE, digits = 3)
+
