@@ -32,6 +32,7 @@ common_theme <- theme_classic(base_size = 14) +
 # Define Plot p1: Host Age Distribution by Gender
 p1 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = host_age_years, fill = sex_combined)) +
+  scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF"))+
   geom_histogram(binwidth = 5, position = "stack", color = "black") +
   labs(
     x = "Age",
