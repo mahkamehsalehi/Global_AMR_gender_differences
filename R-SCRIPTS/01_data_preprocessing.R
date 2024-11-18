@@ -178,10 +178,12 @@ TSE
 ## --------- Alpha diversities -------------------
 
 # Add observed ARG diversity
-TSE <- mia::estimateDiversity(TSE, assay.type="counts", index = "shannon", name="ARG_div")
+TSE <- mia::addAlpha(TSE, assay.type="counts", index = "shannon", name="ARG_div_shan")
+
+TSE <- mia::addAlpha(TSE, assay.type="counts", index = "simpson", name = "ARG_div_simp")
 
 # Add observed ARG richness
-TSE <- mia::estimateRichness(TSE, assay.type="counts", index = "observed", name="ARG_obs")
+TSE <- mia::addAlpha(TSE, assay.type="counts", index = "observed", name="ARG_obs")
 
 
 ## ----  Transformations ----------------
