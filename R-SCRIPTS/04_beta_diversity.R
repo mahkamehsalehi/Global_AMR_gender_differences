@@ -43,7 +43,7 @@ pcoa_filtered <- pcoa %>%
 
 # Calculate centroids for each age group within each region
 centroids <- pcoa_filtered %>%
-  group_by(geo, age_group) %>%
+  group_by(geo, age_group, gender) %>%
   summarize(
     PC1 = mean(PC1),
     PC2 = mean(PC2),
@@ -51,20 +51,26 @@ centroids <- pcoa_filtered %>%
   )
 
 # Create the PCoA plot with facets for each region, colored by age group, and centroids
-ggplot(pcoa_filtered, aes(x = PC1, y = PC2, color = age_group, fill = age_group, shape = gender)) +
-  geom_point(alpha = 0.7, size = 2) +               # Points for PCoA coordinates
-  geom_point(data = centroids, aes(x = PC1, y = PC2, color = age_group, fill =age_group), 
-             shape = 22, size = 6, color = "black") +                # Colored triangles for centroids by age group
-  facet_wrap(~ geo, scales = "free") +              # Separate panels for each region
-  scale_color_manual(values = c("lightblue", "orange", "grey", "purple")) + 
-  scale_fill_manual(values = c("lightblue", "orange","grey", "purple")) +
+fig4 <- ggplot(pcoa_filtered, aes(x = PC1, y = PC2, color = age_group, shape = gender)) +
+  geom_point(alpha = 0.4, size = 2) +               # Points for PCoA coordinates
+  geom_point(data = centroids, aes(x = PC1, y = PC2, color = age_group, fill =age_group, shape = gender), 
+            size = 6, ) +                # Colored triangles for centroids by age group
+  facet_wrap(~ geo, scales = "free") +  
+  scale_color_manual(values = c("lightblue", "orange","green4", "purple")) +
   # Custom colors for age groups
   labs(x = "Principal Coordinate 1", y = "Principal Coordinate 2",
-       color = "Age Group") +                       # Axis and legend labels
-  theme_minimal() +                                 # Minimal theme for cleaner visuals
-  theme(
-    legend.position = "bottom",                     # Position the legend at the bottom
-    panel.spacing = unit(1, "lines"),               # Space between panels
+       color = "Age Group", shape = "Gender") +                       # Axis and legend labels
+  theme_minimal() +
+  guides(fill = "none") +
+  theme(strip.text.x.top  = element_text(size=15),
+    legend.position = "bottom", 
+    legend.text = element_text(size=15),
+    legend.title = element_text(size=15),
+    axis.title = element_text(size= 15),
+    axis.text = element_text(size=15),
+    panel.spacing = unit(1, "lines"), # Space between panels
     strip.text = element_text(size = 10, face = "bold") # Font style for facet labels
   )
-
+png("RESULTS/PCoA_figure.png", width=800, height=400)
+print(fig4)
+dev.off()
