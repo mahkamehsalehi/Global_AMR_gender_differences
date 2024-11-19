@@ -10,7 +10,8 @@ library(ggpubr)
 
 # Data Loading and Preprocessing
 tse <- readRDS("DATA/TSE.rds")
-df <- as.data.frame(colData(tse))
+df <- as.data.frame(colData(tse)) %>%
+  mutate(log_ARG_load = log(ARG_load))
 
 # Recode and Factorize 'sex_combined'
 df$sex_combined <- recode(df$sex_combined, "male" = "Men", "female" = "Women")
@@ -26,14 +27,13 @@ common_theme <- theme_classic(base_size = 14) +
     axis.line = element_line(color = "black"),
     strip.background = element_rect(fill = "white", color = "black"),
     strip.text = element_text(size = 10, face = "bold"),
-    
   )
 
 # Define Plot p1: Host Age Distribution by Gender
 p1 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = host_age_years, fill = sex_combined)) +
-  scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF"))+
-  geom_histogram(binwidth = 5, position = "stack", color = "black") +
+  scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
+  geom_histogram(binwidth = 5, position = position_dodge(width = 4), color = "black", alpha = 0.9) +
   labs(
     x = "Age",
     y = "Count",
@@ -41,12 +41,13 @@ p1 <- ggplot(df %>% filter(!is.na(sex_combined)),
   ) +
   common_theme
 
+
 # Define Plot p2: Antibiotic Resistance Load Distribution
 p2 <- ggplot(df %>% filter(!is.na(sex_combined)), 
-             aes(x = log10_ARG_load)) +
+             aes(x = log_ARG_load)) +
   geom_histogram(binwidth = 0.2, color = "black", alpha = 0.7) +
   labs(
-    x = "Antibiotic Resistance Load (log10 RPKM)",
+    x = "ARG Load (log RPKM)",
     y = "Count"
   ) +
   common_theme
@@ -137,11 +138,8 @@ combined_plot <- (
     (p3 | p4) /
     p5
 ) +
-  plot_layout(heights = c(5, 5, 5.5)) + 
-  plot_annotation(tag_levels = 'a') &
-  theme(
-    plot.tag = element_text(size = 16, face = "bold")  # Style labels
-  )
+  plot_layout(heights = c(5.5, 5, 7)) + 
+  plot_annotation(tag_levels = 'a')
 
 print(combined_plot)
 
