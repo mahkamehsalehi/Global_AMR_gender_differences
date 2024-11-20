@@ -137,19 +137,16 @@ tse_metadata <- tse_metadata %>%
 tse_metadata <- tse_metadata %>%
   mutate(
     age_category = case_when(
-      host_age_years >= 0 & host_age_years < 1 ~ "Infant",
-      host_age_years >= 1 & host_age_years < 3 ~ "Toddler",
-      host_age_years >= 3 & host_age_years < 5 ~ "Preschooler",
-      host_age_years >= 5 & host_age_years < 12 ~ "School-Age Child",
-      host_age_years >= 12 & host_age_years < 18 ~ "Teen",
-      host_age_years >= 18 & host_age_years < 35 ~ "Young Adult",
-      host_age_years >= 35 & host_age_years < 65 ~ "Middle Adult",
-      host_age_years >= 65 & host_age_years <= 100 ~ "Older Adult",
+      host_age_years >= 0 & host_age_years <= 1 ~ "Infant",
+      host_age_years > 1 & host_age_years <= 3 ~ "Toddler",
+      host_age_years > 3 & host_age_years <= 5 ~ "Child",
+      host_age_years > 18 & host_age_years <= 35 ~ "Young Adult",
+      host_age_years > 35 & host_age_years <= 65 ~ "Middle-Age Adult",
+      host_age_years > 65 & host_age_years <= 100 ~ "Older Adult",
       TRUE ~ NA_character_
     ),
     age_category = factor(age_category, levels = c( # Set order for plots
-      "Infant", "Toddler", "Preschooler", "School-Age Child", 
-      "Teen", "Young Adult", "Middle Adult", "Older Adult"
+      "Infant", "Toddler", "Child", "Young Adult", "Middle-Age Adult", "Older Adult"
     ))
   )
 
