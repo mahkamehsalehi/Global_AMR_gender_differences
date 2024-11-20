@@ -26,22 +26,10 @@ metadata_lmic <- tse_metadata %>%
 # Define Custom Plot Theme
 # ---------------------------
 
-common_theme <- theme_classic(base_size = 14) +
-  theme(
-    plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12),
-    legend.position = "none",
-    axis.line = element_line(color = "black"),
-    strip.background = element_rect(fill = "white", color = "black"),
-    strip.text = element_text(size = 12, face = "bold")
-  )
 comparisons <- list(
   c("Infant", "Toddler"),
-  c("Toddler", "Preschooler"),
-  c("Preschooler", "School-Age Child"),
-  c("School-Age Child", "Teen"),
-  c("Teen", "Young Adult"),
+  c("Toddler", "Child"),
+  c("Child", "Young Adult"),
   c("Young Adult", "Middle Adult"),
   c("Middle Adult", "Older Adult")
 )
@@ -51,19 +39,22 @@ comparisons <- list(
 # ---------------------------
 
 # ARG Load Boxplot Without Faceting HIC
-age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = age_category, y = log_ARG_load, fill = gender)) +
+age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = log_ARG_load, fill = gender)) +
   geom_boxplot(
-    #position = position_dodge(width = 0.8),
+    position = position_dodge(width = 0.8),
     outlier.shape = NA,
     width = 0.6,
     alpha = 1,
     show.legend = FALSE
   ) +
+  facet_wrap(~age_category, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Age Category", y = "ARG Load (log natural)") +
+  labs(x = "Gender", y = "ARG Load (log natural)") +
   theme_minimal() +
   stat_compare_means(
-    comparisons = comparisons,
+    comparisons = list(
+      c("Women", "Men")
+    ),
     aes(label = ..p.signif..),
     method = "wilcox.test",
     p.adjust.method = "BH",
@@ -72,23 +63,29 @@ age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = age_category, y = log_ARG_lo
   theme_minimal() +
   theme(
     axis.line = element_line(color = "black"),
-    axis.text.x = element_text(angle = 45, hjust = 1)
+    axis.text.x = element_blank(),
+    strip.text = element_text(size = 10, face = "bold", angle = 45),
+    panel.spacing = unit(0.5, "lines")
   )
 
+
 # Shannon Diversity Boxplot Without Faceting
-age_shannon_boxplot_hic <- ggplot(metadata_hic, aes(x = age_category, y = shannon_diversity, fill = gender)) +
+age_shannon_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_diversity, fill = gender)) +
   geom_boxplot(
-    #position = position_dodge(width = 0.8),
+    position = position_dodge(width = 0.8),
     outlier.shape = NA,
     width = 0.6,
     alpha = 1,
     show.legend = FALSE
   ) +
+  facet_wrap(~age_category, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Age Category", y = "Resistome Diversity") +
+  labs(x = "Gender", y = "ARG Load (log natural)") +
   theme_minimal() +
   stat_compare_means(
-    comparisons = comparisons,
+    comparisons = list(
+      c("Women", "Men")
+    ),
     aes(label = ..p.signif..),
     method = "wilcox.test",
     p.adjust.method = "BH",
@@ -97,8 +94,11 @@ age_shannon_boxplot_hic <- ggplot(metadata_hic, aes(x = age_category, y = shanno
   theme_minimal() +
   theme(
     axis.line = element_line(color = "black"),
-    axis.text.x = element_text(angle = 45, hjust = 1)
+    axis.text.x = element_blank(),
+    strip.text = element_text(size = 10, face = "bold", angle = 45),
+    panel.spacing = unit(0.5, "lines")
   )
+
 
 # Scatterplot for ARG Load vs. Age
 age_arg_scatterplot_hic <- ggplot(metadata_hic, aes(x = host_age_years, y = log_ARG_load, color = gender)) +
@@ -131,20 +131,23 @@ age_shannon_scatterplot_hic <- ggplot(metadata_hic, aes(x = host_age_years, y = 
 # Visualization: Boxplots for LMIC
 # ---------------------------
 
-# ARG Load Boxplot Without Faceting HIC
-age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = age_category, y = log_ARG_load, fill = gender)) +
+# ARG Load Boxplot Without Faceting LMIC
+age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = log_ARG_load, fill = gender)) +
   geom_boxplot(
-    #position = position_dodge(width = 0.8),
+    position = position_dodge(width = 0.8),
     outlier.shape = NA,
     width = 0.6,
     alpha = 1,
     show.legend = FALSE
   ) +
+  facet_wrap(~age_category, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Age Category", y = "ARG Load (log natural)") +
+  labs(x = "Gender", y = "ARG Load (log natural)") +
   theme_minimal() +
   stat_compare_means(
-    comparisons = comparisons,
+    comparisons = list(
+      c("Women", "Men")
+    ),
     aes(label = ..p.signif..),
     method = "wilcox.test",
     p.adjust.method = "BH",
@@ -153,23 +156,30 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = age_category, y = log_ARG_
   theme_minimal() +
   theme(
     axis.line = element_line(color = "black"),
-    axis.text.x = element_text(angle = 45, hjust = 1)
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    strip.text = element_text(size = 10, face = "bold", angle = 45),
+    panel.spacing = unit(0.5, "lines")
   )
 
-# Shannon Diversity Boxplot Without Faceting
-age_shannon_boxplot_lmic <- ggplot(metadata_lmic, aes(x = age_category, y = shannon_diversity, fill = gender)) +
+
+# Shannon Diversity Boxplot
+age_shannon_boxplot_lmic <-ggplot(metadata_lmic, aes(x = gender, y = shannon_diversity, fill = gender)) +
   geom_boxplot(
-    #position = position_dodge(width = 0.8),
+    position = position_dodge(width = 0.8),
     outlier.shape = NA,
     width = 0.6,
     alpha = 1,
     show.legend = FALSE
   ) +
+  facet_wrap(~age_category, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Age Category", y = "ARG Load (log natural)") +
+  labs(x = "Gender", y = "ARG Load (log natural)") +
   theme_minimal() +
   stat_compare_means(
-    comparisons = comparisons,
+    comparisons = list(
+      c("Women", "Men")
+    ),
     aes(label = ..p.signif..),
     method = "wilcox.test",
     p.adjust.method = "BH",
@@ -178,7 +188,9 @@ age_shannon_boxplot_lmic <- ggplot(metadata_lmic, aes(x = age_category, y = shan
   theme_minimal() +
   theme(
     axis.line = element_line(color = "black"),
-    axis.text.x = element_text(angle = 45, hjust = 1)
+    axis.text.x = element_blank(),
+    strip.text = element_text(size = 10, face = "bold", angle = 45),
+    panel.spacing = unit(0.5, "lines")
   )
 
 # Scatterplot for ARG Load vs. Age
@@ -191,8 +203,7 @@ age_arg_scatterplot_lmic <- ggplot(metadata_lmic, aes(x = host_age_years, y = lo
     color = "Gender"
   ) +
   theme_minimal() +
-  common_theme
-
+  theme(axis.line = element_line(color = "black"))
 # Scatterplot for Shannon Diversity vs. Age
 age_shannon_scatterplot_lmic  <- ggplot(metadata_lmic, aes(x = host_age_years, y = shannon_diversity, color = gender)) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
@@ -316,7 +327,6 @@ age_arg_boxplot_female_lmic <- ggplot(women_data_lmic, aes(x = age_category, y =
   labs(x = "Age Category", y = "ARG Load (log natural)") +
   theme_minimal() +
   theme(legend.position = "none") +
-  scale_x_discrete(labels = c("Middle-Aged Adult" = "Middle-Age")) +
   stat_compare_means(
     comparisons = comparisons,
     aes(label = ..p.signif..),
@@ -385,15 +395,24 @@ age_shannon_scatterplot_female_lmic <- ggplot(women_data_lmic, aes(x = host_age_
     axis.line = element_line(color = "black")
   )
 
-# Combine Scatterplots and Boxplots for Women
-combined_figure <- (age_arg_scatterplot_hic + age_arg_boxplot_female_hic + 
-                                         age_shannon_scatterplot_hic + age_shannon_boxplot_female_hic) +
-  plot_layout(ncol = 2, nrow = 2) + 
+# Combine Scatterplots and Boxplots 
+combined_arg_age_hic <- age_arg_scatterplot_hic + age_arg_boxplot_hic + 
+  plot_layout(ncol = 2) + 
   plot_annotation(
     tag_levels = 'a')
 
 # Save the combined figure
-ggsave("RESULTS/FIGURES/age_4_panel.pdf", combined_figure, width = 12, height = 8)
+ggsave("RESULTS/FIGURES/arg_age_hic.png", combined_arg_age_hic, width = 14, height = 8)
+
+
+# Combine Scatterplots and Boxplots 
+combined_arg_age_lmic <- age_arg_scatterplot_lmic + age_arg_boxplot_lmic + 
+  plot_layout(ncol = 2) + 
+  plot_annotation(
+    tag_levels = 'a')
+
+# Save the combined figure
+ggsave("RESULTS/FIGURES/arg_age_hic.png", combined_arg_age_lmic, width = 14, height = 8)
 
 
 # ---------------------------
