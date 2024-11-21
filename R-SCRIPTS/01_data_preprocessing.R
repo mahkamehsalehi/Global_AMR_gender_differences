@@ -216,7 +216,10 @@ saveRDS(TSE, file="DATA/TSE.rds")
 
 rm(list  = ls())
 
-colData(TSE) <- colData(TSE)%>%
+
+# Categorize age into meaningful groups (age_category)
+colData(TSE) <- colData(TSE) %>%
+  as_tibble() %>%
   mutate(
     age_category = case_when(
       host_age_years >= 0 & host_age_years <= 1 ~ "Infant",
@@ -230,7 +233,12 @@ colData(TSE) <- colData(TSE)%>%
     age_category = factor(age_category, levels = c(
       "Infant", "Toddler", "Child", "Young Adult", "Middle-Age Adult", "Older Adult"
     ))
-  )
+  ) %>%
+  as("DataFrame")
+
+# Save the TreeSummarizedExperiment object
+saveRDS(TSE, file="DATA/TSE.rds")
+
 ## TODO ##
 
 # ## ---------- Ordinations ------------
