@@ -183,7 +183,7 @@ TSE <- mia::addAlpha(TSE, assay.type="counts", index = "shannon", name="ARG_div_
 TSE <- mia::addAlpha(TSE, assay.type="counts", index = "simpson", name = "ARG_div_simp")
 
 # Add observed ARG richness
-TSE <- mia::addAlpha(TSE, assay.type="counts", index = "observed", name="ARG_obs")
+TSE <- mia::addAlpha(TSE, assay.type="counts", index = "observed", niter = 10, name="ARG_obs")
 
 
 ## ----  Transformations ----------------
@@ -209,7 +209,7 @@ TSE <- TSE[,filtered_samples]
 source("R-SCRIPTS/metadata_processing_bioproject.R")
 
 # Add alternative antibiotic use data
-source("R-SCRIPTS/metadata_processing_antibiotic_use.R")
+# source("R-SCRIPTS/metadata_processing_antibiotic_use.R")
 
 # Save the TreeSummarizedExperiment object
 saveRDS(TSE, file="DATA/TSE.rds")
@@ -220,35 +220,3 @@ rm(list  = ls())
 ## TODO ##
 
 # ## ---------- Ordinations ------------
-# Run on CSC
-# # Perform PCoA with Bray-Curtis on relative abundances ## INPROGRESS!
-#!/bin/bash -l
-#SBATCH --job-name=MDS
-#SBATCH --account=project_2008149
-#SBATCH --output=output_%j.txt
-#SBATCH --error=errors_%j.txt
-#SBATCH --partition=test
-#SBATCH --time=05:00:00
-#SBATCH --ntasks=1
-#SBATCH --nodes=1
-#SBATCH --mem-per-cpu=100000
-
-
-# Ordinations TODO
-# library(scater)
-# library(vegan)
-# TSE <- readRDS("TSE.rds")
-# TSE <- scater::runMDS(TSE,
-#                        FUN = vegan::vegdist,
-#                        method = "bray",
-#                        name = "PCoA",
-#                        ncomponents=3,
-#                        exprs_values = "relabundance")
-# 
-# colnames(reducedDim(TSE)) <- paste0("PC", seq_len(ncol(reducedDim(TSE))))
-#  
-#  # Switch (the arbitrary) sign so that the figure is more directly
-#  # comparable with earlier publications
-#  reducedDim(TSE)[,1] <- -reducedDim(TSE)[,1]
-#  reducedDim(TSE)[,2] <- -reducedDim(TSE)[,2]
-#  saveRDS(TSE, file="TSE_ord.rds")

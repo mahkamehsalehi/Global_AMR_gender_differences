@@ -9,7 +9,7 @@ source("R-SCRIPTS/00_functions.R")
 # Do not run, slow
 # Downlaods Sra metadata file that also has the attributes field and processes it.
 
-df <- read_csv("DATA/RAW/Sra_metadata_jun12_attributes.txt")
+df <- read_csv("DATA/Sra_metadata_jun12_attributes.txt")
 
 df <- df %>%
   mutate(
