@@ -216,7 +216,21 @@ saveRDS(TSE, file="DATA/TSE.rds")
 
 rm(list  = ls())
 
-
+colData(TSE) <- colData(TSE)%>%
+  mutate(
+    age_category = case_when(
+      host_age_years >= 0 & host_age_years <= 1 ~ "Infant",
+      host_age_years > 1 & host_age_years <= 3 ~ "Toddler",
+      host_age_years > 3 & host_age_years <= 5 ~ "Child",
+      host_age_years > 18 & host_age_years <= 35 ~ "Young Adult",
+      host_age_years > 35 & host_age_years <= 65 ~ "Middle-Age Adult",
+      host_age_years > 65 & host_age_years <= 100 ~ "Older Adult",
+      TRUE ~ NA_character_
+    ),
+    age_category = factor(age_category, levels = c(
+      "Infant", "Toddler", "Child", "Young Adult", "Middle-Age Adult", "Older Adult"
+    ))
+  )
 ## TODO ##
 
 # ## ---------- Ordinations ------------
