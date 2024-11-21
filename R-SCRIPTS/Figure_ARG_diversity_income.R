@@ -7,14 +7,13 @@ library(tidyverse)
 
 TSE <- readRDS("DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
-# Filter metadata for valid income groups and remove specific categories
+
 filtered_metadata <- tse_metadata %>%
   filter(
     category != "Infant Study", 
     geo_loc_name_country_calc != "Zimbabwe"
   )
 
-# Classify income groups into 'HIC' and 'LMIC' and remove missing values for ARG load
 filtered_metadata <- filtered_metadata %>%
   drop_na(log_ARG_load, income_group)
 
