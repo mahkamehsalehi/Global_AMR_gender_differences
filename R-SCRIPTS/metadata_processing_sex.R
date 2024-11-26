@@ -27,7 +27,7 @@ print(age_columns)
 
 # Create a new dataframe with the specified columns
 df_selected <- df %>%
-  select(
+  dplyr::select(
     acc,
     geo_loc_name_country_calc,
     geo_loc_name_country_continent_calc,
@@ -56,7 +56,7 @@ df_selected <- df_selected %>%
   mutate(sex_combined = coalesce(host_sex_sam, gender_sam, sex_calc, infant_gender_sam)) %>%
   mutate(sex_combined = tolower(sex_combined),  # Convert to lowercase
          sex_combined = ifelse(sex_combined %in% c("male", "female"), sex_combined, NA)) %>% # Replace invalid values with NA
-  select(-host_sex_sam, -gender_sam, -sex_calc, -infant_gender_sam) %>%
+  dplyr::select(-host_sex_sam, -gender_sam, -sex_calc, -infant_gender_sam) %>%
 mutate(host_age_sam = str_replace_all(host_age_sam, "around ", "")) %>%
   mutate(host_age_sam = str_replace_all(host_age_sam, " years", ""))   
 
@@ -91,3 +91,4 @@ age_columns <- age_columns[age_columns != "host_age_years"]
 # Remove extra age_columns
 
 df_selected <- df_selected %>% dplyr::select(-c(age_columns, "project_uses_days"))
+

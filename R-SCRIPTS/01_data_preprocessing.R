@@ -57,7 +57,7 @@ filtered_assay <- gene_expression_data_80 %>%
 # Select relevant columns from filtered_assay
 accessions_to_keep <- filtered_metadata$acc
 assay_subset <- filtered_assay %>% 
-  select(1, all_of(accessions_to_keep))
+  dplyr::select(1, all_of(accessions_to_keep))
 
 # Filter resfinder_phenotypes for unique genes
 GENEs_to_keep <- unique(filtered_assay$GENE)
@@ -100,7 +100,7 @@ rpk_values <- merged_assay_metadata %>%
   mutate(across(-c(GENE, gene_length, length_kb), ~ . / length_kb))
 
 # Extract only the RPK values
-rpk_values <- rpk_values %>% select(-c(GENE, gene_length, length_kb))
+rpk_values <- rpk_values %>% dplyr::select(-c(GENE, gene_length, length_kb))
 
 
 # Check the order of 'acc' and column names
@@ -183,7 +183,7 @@ TSE <- mia::addAlpha(TSE, assay.type="counts", index = "shannon", name="ARG_div_
 TSE <- mia::addAlpha(TSE, assay.type="counts", index = "simpson", name = "ARG_div_simp")
 
 # Add observed ARG richness
-TSE <- mia::addAlpha(TSE, assay.type="counts", index = "observed", niter = 10, name="ARG_obs")
+TSE <- mia::addAlpha(TSE, assay.type="counts", index = "observed", name="ARG_obs")
 
 
 ## ----  Transformations ----------------
@@ -216,7 +216,7 @@ saveRDS(TSE, file="DATA/TSE.rds")
 
 rm(list  = ls())
 
-
+TSE <- read_rds("DATA/TSE.rds")
 # Categorize age into meaningful groups (age_category)
 colData(TSE) <- colData(TSE) %>%
   as_tibble() %>%
@@ -224,7 +224,7 @@ colData(TSE) <- colData(TSE) %>%
     age_category = case_when(
       host_age_years >= 0 & host_age_years <= 1 ~ "Infant",
       host_age_years > 1 & host_age_years <= 3 ~ "Toddler",
-      host_age_years > 3 & host_age_years <= 5 ~ "Child",
+      host_age_years > 3 & host_age_years <= 18 ~ "Child",
       host_age_years > 18 & host_age_years <= 35 ~ "Young Adult",
       host_age_years > 35 & host_age_years <= 65 ~ "Middle-Age Adult",
       host_age_years > 65 & host_age_years <= 100 ~ "Older Adult",

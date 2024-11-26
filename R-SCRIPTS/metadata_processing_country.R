@@ -160,16 +160,16 @@ country_level_data <- country_level_data %>%
 
 # Find the geo_loc_name_country_calc values in country_level_data but not in df
 missing_countries <- df %>%
-  select(geo_loc_name_country_calc) %>%
-  anti_join(country_level_data %>% select(geo_loc_name_country_calc), by = "geo_loc_name_country_calc")
+  dplyr::select(geo_loc_name_country_calc) %>%
+  anti_join(country_level_data %>% dplyr::select(geo_loc_name_country_calc), by = "geo_loc_name_country_calc")
 
 # Print or inspect the result
 print(missing_countries$geo_loc_name_country_calc %>% sort %>% unique)
 
 # Find the geo_loc_name_country_calc values in country_level_data but not in df
 missing_countries_2 <- country_level_data %>%
-  select(geo_loc_name_country_calc) %>%
-  anti_join(df %>% select(geo_loc_name_country_calc), by = "geo_loc_name_country_calc")
+  dplyr::select(geo_loc_name_country_calc) %>%
+  anti_join(df %>% dplyr::select(geo_loc_name_country_calc), by = "geo_loc_name_country_calc")
 
 
 # Print or inspect the result

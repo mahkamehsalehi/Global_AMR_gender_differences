@@ -14,7 +14,7 @@ df <- df %>%
     abstract = str_match(abstract, "'Project_Description':\\s*'(.*?)'")[,2]  # Extract Project_Description
   ) %>%
   ungroup() %>%  # Ungroup the row-wise operation
-  select(bioproject, title, abstract, category)  # Keep only 'title' and 'abstract'
+  dplyr::select(bioproject, title, abstract, category)  # Keep only 'title' and 'abstract'
 
 # Step 2: View the updated dataframe
 df %>% head(10)
