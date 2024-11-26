@@ -397,9 +397,6 @@ age_shannon_scatterplot_female_lmic <- ggplot(women_data_lmic, aes(x = host_age_
     axis.line = element_line(color = "black")
   )
 
-# Combine Scatterplots and Boxplots 
-library(cowplot)
-
 # Combine the scatterplot and boxplot
 combined_arg_age_hic <- plot_grid(
   age_arg_scatterplot_hic, 
@@ -410,7 +407,6 @@ combined_arg_age_hic <- plot_grid(
 
 # Save the figure
 ggsave("RESULTS/FIGURES/arg_age_hic.png", combined_arg_age_hic, width = 14, height = 8)
-
 
 
 # Combine Scatterplots and Boxplots 

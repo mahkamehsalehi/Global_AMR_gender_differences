@@ -4,6 +4,7 @@ library(ggplot2)
 library(ggpubr)
 library(patchwork)
 library(tidyverse)
+library(cowplot)
 
 TSE <- readRDS("DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
@@ -105,3 +106,82 @@ combined_figure_income <- income_arg_boxplot + income_shannon_boxplot +
   plot_annotation(tag_levels = 'a')
 
 ggsave("RESULTS/FIGURES/income_panel.png", combined_figure_income, width = 10, height = 8)
+
+
+#-----------------------------------------------------
+#-----------------------------------------------------
+#-----------------------------------------------------
+# Violin Plot
+#-----------------------------------------------------
+#-----------------------------------------------------
+#-----------------------------------------------------
+
+# Define consistent color palette
+gender_colors <- c("Women" = "#F8766D", "Men" = "#619CFF")
+
+# Ensure consistent themes and uniform styling
+custom_theme <- theme_minimal() +
+  theme(
+    axis.line = element_line(color = "black"),
+    strip.background = element_rect(color = "black", size = 1),
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10) ,
+    legend.position = "none"
+  )
+
+# Set consistent y-axis limits
+resistome_y_limits <- c(0, 4)
+arg_y_limits <- c(0, 13)
+
+# Violin plot for ARG load (Women)
+income_arg_violin_female <- ggplot(filtered_metadata_female, 
+                                   aes(x = income_group, 
+                                       y = log_ARG_load, 
+                                       fill = income_group)) +
+  geom_violin(trim = FALSE, alpha = 1, color = "black") +
+  geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
+  stat_compare_means(comparisons = list(c("HIC", "LMIC")), 
+                     label = "p.signif", 
+                     method = "wilcox.test", 
+                     p.adjust.method = "BH", 
+                     hide.ns = FALSE) +
+  scale_fill_manual(values = c("HIC" = "#F8766D", "LMIC" = "#F8766D")) +
+  labs(x = "Income group", 
+       y = "ARG load (natural log)") +
+  ylim(arg_y_limits) +
+  custom_theme
+
+# Violin plot for Shannon diversity (Women)
+income_shannon_violin_female <- ggplot(filtered_metadata_female, 
+                                       aes(x = income_group, 
+                                           y = shannon_diversity, 
+                                           fill = income_group)) +
+  geom_violin(trim = FALSE, alpha = 1, color = "black") +
+  geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
+  stat_compare_means(comparisons = list(c("HIC", "LMIC")), 
+                     label = "p.signif", 
+                     method = "wilcox.test", 
+                     p.adjust.method = "BH", 
+                     hide.ns = FALSE) +
+  scale_fill_manual(values = c("HIC" = "#F8766D", "LMIC" = "#F8766D")) +
+  labs(x = "Income group", 
+       y = "Resistome diversity") +
+  ylim(resistome_y_limits) +
+  custom_theme
+
+# Combine plots with consistent styling and alignment
+combined_figure_income <- plot_grid(
+  income_arg_violinplot + custom_theme ,
+  income_shannon_violinplot + custom_theme,
+  income_arg_violin_female ,
+  income_shannon_violin_female,
+  labels = c('a', 'b', 'c', 'd'),
+  ncol = 2,
+  align = 'hv',
+  rel_widths = c(1, 1),
+  rel_heights = c(1, 1)
+)
+
+# Save the final combined figure as a high-resolution image
+ggsave("RESULTS/FIGURES/income_panel_violinplot.png", combined_figure_income, width = 12, height = 10, dpi = 300)
