@@ -1,4 +1,3 @@
-library(vegan)
 library(ggpubr)
 library(ggpubr)
 library(patchwork)
@@ -19,8 +18,8 @@ tse_metadata <- tse_metadata %>%
     age_group = case_when(
       host_age_years >= 0 & host_age_years <= 1 ~ "Infant",
       host_age_years > 1 & host_age_years <= 3 ~ "Toddler",
-      host_age_years > 3 & host_age_years <= 5 ~ "Child",
-      host_age_years > 18 & host_age_years <= 100 ~ "Adult",
+      host_age_years > 3 & host_age_years < 18 ~ "Child",
+      host_age_years >= 18 & host_age_years <= 100 ~ "Adult",
       TRUE ~ NA_character_
     ),
     # Order the age categories for consistent plotting
