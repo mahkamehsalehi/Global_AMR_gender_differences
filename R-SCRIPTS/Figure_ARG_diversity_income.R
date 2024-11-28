@@ -18,6 +18,11 @@ filtered_metadata <- tse_metadata %>%
 filtered_metadata <- filtered_metadata %>%
   drop_na(log_ARG_load, income_group)
 
+filtered_metadata_no_outliers <- filtered_metadata %>%
+  filter(ARG_load <= 3000)
+
+filtered_metadata_female_no_outliers <- filtered_metadata_no_outliers %>%
+  filter(gender == "Women")
 
 # Plot ARG load by gender across income groups
 income_arg_boxplot <- ggplot(filtered_metadata_no_outliers, aes(x = gender, y = ARG_load, fill = gender)) +
@@ -142,14 +147,6 @@ custom_theme <- theme_minimal() +
     axis.text = element_text(size = 10) ,
     legend.position = "none"
   )
-
-
-
-filtered_metadata_no_outliers <- filtered_metadata %>%
-  filter(ARG_load <= 3000)
-
-filtered_metadata_female_no_outliers <- filtered_metadata_no_outliers %>%
-  filter(gender == "Women")
 
 income_arg_violinplot <- ggviolin(
   filtered_metadata_no_outliers,
