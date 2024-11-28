@@ -5,8 +5,9 @@ library(ggpubr)
 library(patchwork)
 library(tidyverse)
 library(cowplot)
+library(mia)
 
-TSE <- readRDS("DATA/TSE_filtered.rds")
+TSE <- readRDS("../DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
 
 filtered_metadata <- tse_metadata %>%
@@ -118,7 +119,7 @@ combined_figure_income <- plot_grid(
 )
 
 
-ggsave("RESULTS/FIGURES/income_panel.png", combined_figure_income, width = 10, height = 8)
+ggsave("../RESULTS/FIGURES/income_panel.png", combined_figure_income, width = 10, height = 8)
 
 
 #-----------------------------------------------------
@@ -275,4 +276,4 @@ combined_figure_income_female <- plot_grid(
 )
 
 # Save the final combined figure as a high-resolution image
-ggsave("RESULTS/FIGURES/income_panel_violinplot_female.png", combined_figure_income_female, width = 10, height = 6, dpi = 300)
+ggsave("../RESULTS/FIGURES/income_panel_violinplot_female.png", combined_figure_income_female, width = 10, height = 6, dpi = 300)
