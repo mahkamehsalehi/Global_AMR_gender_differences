@@ -7,6 +7,7 @@ library(countrycode)
 library(viridis)
 library(tidyverse)
 library(ggpubr)
+library(cowplot)
 
 # Data Loading and Preprocessing
 tse <- readRDS("DATA/TSE.rds")
@@ -32,11 +33,11 @@ common_theme <- theme_classic(base_size = 14) +
 # Define Plot p1: Host Age Distribution by Gender
 p1 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = host_age_years, fill = sex_combined)) +
-  scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  geom_histogram(binwidth = 5, position = position_dodge(width = 4), color = "black", alpha = 0.9) +
+  scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
+  geom_histogram(binwidth = 5, position = position_dodge(width = 4), color = "black", alpha = 0.7) +
   labs(
     x = "Age",
-    y = "Count",
+    y = "Count (N)",
     fill = "Gender"
   ) +
   common_theme
@@ -44,11 +45,13 @@ p1 <- ggplot(df %>% filter(!is.na(sex_combined)),
 
 # Define Plot p2: Antibiotic Resistance Load Distribution
 p2 <- ggplot(df %>% filter(!is.na(sex_combined)), 
-             aes(x = log_ARG_load)) +
-  geom_histogram(binwidth = 0.2, color = "black", alpha = 0.7) +
+                   aes(x = log_ARG_load, fill = sex_combined)) +
+  scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
+  geom_bar(position = position_dodge(width = 0.14), color = "black", alpha = 0.7, stat = "bin", binwidth = 0.2) +
   labs(
-    x = "ARG Load (log RPKM)",
-    y = "Count"
+    x = "ARG load (natural log RPKM)",
+    y = "Count (N)",
+    fill = "Gender"
   ) +
   common_theme
 
@@ -63,24 +66,31 @@ df$World_Bank_Income_Group<- factor(df$World_Bank_Income_Group,
                                ordered = TRUE)
 
 
-p3 <- ggplot(df %>% filter(!is.na(World_Bank_Income_Group)), 
-             aes(x = World_Bank_Income_Group)) +
-  geom_bar(color = "black", alpha = 0.7) +
+p3 <- ggplot(df %>% filter(!is.na(World_Bank_Income_Group) & !is.na(sex_combined)), 
+             aes(x = World_Bank_Income_Group, fill = sex_combined)) +
+  geom_bar(position = position_dodge(width = 0.7), color = "black", alpha = 0.7) +
+  scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
   labs(
     x = "World Bank Income Group",
-    y = "Count"
+    y = "Count (N)",
+    fill = "Gender"
   ) +
   common_theme
 
+
+
 # Define Plot p4: Antibiotic Usage Distribution
 p4 <- ggplot(df %>% filter(!is.na(sex_combined)), 
-             aes(x = Usage)) +
-  geom_histogram(binwidth = 1, color = "black", alpha = 0.7) +
+             aes(x = Usage, fill = sex_combined)) +
+  geom_histogram(binwidth = 1, position = position_dodge(width = 0.7), color = "black", alpha = 0.7) +
+  scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
   labs(
     x = "Antibiotic Usage (DDD)",
-    y = "Count"
+    y = "Count (N)",
+    fill = "Gender"
   ) +
   common_theme
+
 
 # Define Plot p5: Number of Samples per Country (World Map)
 # Filter Data
@@ -108,13 +118,12 @@ world_data <- world %>%
 breaks_seq_custom <- c(0, 1000, 2000, 3000)
 
 # Create Plot p5: Sample Count World Map
-p5 <- ggplot(data = world_data) +
+p5 <- 
+ggplot(data = world_data) +
   geom_sf(aes(fill = count), color = "white", size = 0.2) +
-  scale_fill_distiller(
-    palette = "Spectral",
-    direction = 1,
-    breaks = breaks_seq_custom,
-    labels = breaks_seq_custom,
+  scale_fill_gradient(
+    low = "lightblue",
+    high = "darkblue",
     na.value = "grey90",
     name = "Number of Samples"
   ) +
@@ -132,15 +141,21 @@ p5 <- ggplot(data = world_data) +
     legend.text = element_text(size = 10)
   )
 
-# Combine the Plots Using Patchwork
-combined_plot <- (
-  (p1 | p2) /
-    (p3 | p4) /
-    p5
-) +
-  plot_layout(heights = c(5.5, 5, 7)) + 
-  plot_annotation(tag_levels = 'a')
+
+
+combined_plot <- plot_grid(
+  plot_grid(p1, p2, ncol = 2, rel_heights = c(5.5, 5)),
+  plot_grid(p3, p4, ncol = 2, rel_heights = c(5.5, 5)),
+  p5,
+  ncol = 1,
+  rel_heights = c(5.5, 5, 7)
+)
+
+# Add annotations with tags
+combined_plot <- cobined_plot +
+  plot_annotation(tag_levels = "a")
+
 
 print(combined_plot)
 
-ggsave("RESULTS/FIGURES/Data_Summary.png", combined_plot, width = 12, height = 8, dpi = 300)
+ggsave("RESULTS/FIGURES/Data_Summary1.png", combined_plot, width = 12, height = 8, dpi = 300)
