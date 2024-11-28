@@ -5,13 +5,14 @@ library(ggpubr)
 library(patchwork)
 library(tidyverse)
 library(cowplot)
-
+library(mia)
+library(rstatix)
 
 # ---------------------------
 # Data Loading and Preprocessing
 # ---------------------------
 
-TSE <- readRDS("DATA/TSE_filtered.rds")
+TSE <- readRDS("../DATA/TSE_filtered.rds")
 
 tse_metadata <- as.data.frame(colData(TSE))
 
@@ -406,7 +407,7 @@ combined_arg_age_hic <- plot_grid(
 )
 
 # Save the figure
-ggsave("RESULTS/FIGURES/arg_age_hic.png", combined_arg_age_hic, width = 14, height = 8)
+ggsave("../RESULTS/FIGURES/arg_age_hic.png", combined_arg_age_hic, width = 14, height = 8)
 
 
 # Combine Scatterplots and Boxplots 
@@ -418,7 +419,7 @@ combined_arg_age_lmic <- plot_grid(
 )
 
 # Save the combined figure
-ggsave("RESULTS/FIGURES/arg_age_lmic.png", combined_arg_age_lmic, width = 14, height = 8)
+ggsave("../RESULTS/FIGURES/arg_age_lmic.png", combined_arg_age_lmic, width = 14, height = 8)
 
 
 # Combine Scatterplots and Boxplots 
@@ -430,7 +431,7 @@ combined_shannon_age_hic <- plot_grid(
 )
 
 # Save the combined figure
-ggsave("RESULTS/FIGURES/shannon_age_hic.png", combined_shannon_age_hic, width = 14, height = 8)
+ggsave("../RESULTS/FIGURES/shannon_age_hic.png", combined_shannon_age_hic, width = 14, height = 8)
 
 
 # Combine Scatterplots and Boxplots 
@@ -442,7 +443,7 @@ combined_shannon_age_lmic <- plot_grid(
 )
 
 # Save the combined figure
-ggsave("RESULTS/FIGURES/shannon_age_lmic.png", combined_shannon_age_lmic, width = 14, height = 8)
+ggsave("../RESULTS/FIGURES/shannon_age_lmic.png", combined_shannon_age_lmic, width = 14, height = 8)
 
 # ---------------------------
 # Statistical Analysis: Wilcoxon Tests
