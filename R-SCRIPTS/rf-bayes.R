@@ -67,7 +67,7 @@ pcoa_adult_data <- pcoa_adult_data %>%
     sex_combined = adult_metadata$sex_combined,
     adult_age_category = case_when(
       host_age_years >= 18 & host_age_years < 35 ~ "Young Adult",
-      host_age_years >= 35 & host_age_years < 65 ~ "Middle Adulthood",
+      host_age_years >= 35 & host_age_years < 65 ~ "Middle-age Adult",
       host_age_years >= 65 ~ "Older Adult",
       TRUE ~ NA_character_
     )
@@ -209,7 +209,10 @@ glm_arg_load <- glm(
     family = gaussian()
   )
   summary(glm_arg_load)
+
 #}
+
+save.image()
 
 # Variance Inflation Factor (VIF) to check multicollinearity
 vif_model <- lm(shannon_diversity ~ sex_combined + age_category + region + GDP_per_head + Usage, data = adult_metadata)

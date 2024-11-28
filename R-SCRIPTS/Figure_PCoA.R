@@ -1,3 +1,4 @@
+library(mia)
 library(vegan)
 library(ggpubr)
 library(ggpubr)
@@ -8,7 +9,7 @@ library(tidyverse)
 # Data Preparation
 # ---------------------------
 
-tse <- readRDS("DATA/TSE_filtered.rds")
+tse <- readRDS("../DATA/TSE_filtered.rds")
 
 # Extract metadata from the TSE object and convert it to a data frame
 tse_metadata <- as.data.frame(colData(tse))
@@ -92,5 +93,5 @@ combined_plots <- pcoa_geo_plot + (pcoa_gender_plot/plot_spacer()) +
   )
 
 # Save the combined figure
-ggsave("RESULTS/FIGURES/pcoa_panel.png", combined_plots, width = 12, height = 8)
+ggsave("../RESULTS/FIGURES/pcoa_panel.png", combined_plots, width = 12, height = 8)
 
