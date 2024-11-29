@@ -444,7 +444,7 @@ shannon_full_summary %>%
   coord_flip() +
   labs(title = "95% CIs")
 
-    
+
     
  
 
