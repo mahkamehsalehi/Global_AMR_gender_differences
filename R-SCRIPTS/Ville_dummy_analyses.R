@@ -219,7 +219,7 @@ adult_metadata <- cbind(adult_metadata, temp_df_one_hot)
 rm(temp_df, temp_df_one_hot)
 
 ## Dummy-encoded linear models ******************************************************* ####
-## No grouping ************************ ####
+## Pooled model ************************ ####
 
 log10_ARG_formula <- paste0("log10_ARG_load ~ ",
                             paste0(dummy_var_names[!grepl(pattern = "Africa|Asia|Infant", x = dummy_var_names)],
@@ -289,7 +289,7 @@ full_summary %>%
 
 
 
-## Separate models *********** ####
+## Separate models ********************* ####
 
 ## log10_ARG_load ************
 
