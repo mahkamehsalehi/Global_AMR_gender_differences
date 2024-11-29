@@ -6,15 +6,13 @@ library(patchwork)
 library(tidyverse)
 library(cowplot)
 library(rstatix)
+library(SummarizedExperiment)
 
-# ---------------------------
+# -----------------------------
 # Data Loading and Preprocessing
-# ---------------------------
+# -----------------------------
 
-TSE <- readRDS("../DATA/TSE_filtered.rds")
-
-df$age_category <- factor(df$age_category, 
-                          levels = c("Infant", "Toddler", "Child", "Young Adult", "Middle-Aged Adult", "Older Adult"))
+TSE <- readRDS("DATA/TSE_filtered.rds")
 
 tse_metadata <- as.data.frame(colData(TSE))
 
@@ -447,71 +445,3 @@ combined_shannon_age_lmic <- plot_grid(
 # Save the combined figure
 ggsave("RESULTS/FIGURES/shannon_age_lmic.png", combined_shannon_age_lmic, width = 14, height = 8)
 
-# -----------------------------
-# Statistical Analysis: Wilcoxon Tests
-# -----------------------------
-
-# Perform Wilcoxon tests for ARG Load
-arg_load_results <- tse_metadata %>%
-  group_by(age_group) %>%
-  wilcox_test(log_ARG_load ~ gender) %>%
-  adjust_pvalue(method = "BH") %>%
-  add_significance("p.adj") %>%
-  mutate(variable = "ARG Load") %>%
-  select(age_group, variable, group1, group2, n1, n2, statistic, p, p.adj, p.adj.signif)
-
-# Perform Wilcoxon tests for Shannon Diversity
-shannon_div_results <- tse_metadata %>%
-  group_by(age_group) %>%
-  wilcox_test(shannon_diversity ~ gender) %>%
-  adjust_pvalue(method = "BH") %>%
-  add_significance("p.adj") %>%
-  mutate(variable = "Shannon Diversity") %>%
-  select(age_group, variable, group1, group2, n1, n2, statistic, p, p.adj, p.adj.signif)
-
-# Combine the results into one table
-result_table <- bind_rows(arg_load_results, shannon_div_results) %>%
-  mutate(
-    p = signif(p, digits = 3),
-    p.adj = signif(p.adj, digits = 3),
-    statistic = round(statistic, 2)
-  ) %>%
-  arrange(variable, age_group)
-
-# View the formatted result table
-print(result_table)
-
-# ---------------------------
-# Statistical Analysis: Pairwise Wilcoxon Tests for Women
-# ---------------------------
-
-women_data <- tse_metadata %>%
-  filter(gender == "Women")
-
-# Perform pairwise Wilcoxon tests for ARG Load in women
-pairwise_arg_load <- women_data %>%
-  pairwise_wilcox_test(
-    log_ARG_load ~ age_category,
-    p.adjust.method = "BH"
-  ) %>%
-  mutate(variable = "ARG Load")
-
-# Perform pairwise Wilcoxon tests for Shannon Diversity in women
-pairwise_shannon <- women_data %>%
-  pairwise_wilcox_test(
-    shannon_diversity ~ age_category,
-    p.adjust.method = "BH"
-  ) %>%
-  mutate(variable = "Shannon Diversity")
-
-# Combine the pairwise results into one table
-pairwise_results <- bind_rows(pairwise_arg_load, pairwise_shannon) %>%
-  select(variable, group1, group2, n1, n2, p, p.adj, p.adj.signif) %>%
-  mutate(
-    p = signif(p, digits = 3),
-    p.adj = signif(p.adj, digits = 3)
-  ) %>%
-  arrange(variable, group1, group2)
-
-# View the formatted pairwise results table
-print(pairwise_results ,n = Inf)
