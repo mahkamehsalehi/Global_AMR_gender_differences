@@ -13,9 +13,8 @@ library(xgboost)
 library(brms)
 library(glmnet)
 
-#-------------------------------------------------------------------------------
-# Data Loading and Initial Filtering
-#-------------------------------------------------------------------------------
+
+## Data Loading and Initial Filtering ************************************************ ####
 
 # Load TSE object
 TSE <- readRDS("DATA/TSE.rds")
@@ -34,12 +33,7 @@ adult_metadata <- as.data.frame(colData(TSE_adult)) %>%
     sex_combined = factor(sex_combined, levels = c("Men", "Women"))
   )
 
-
-
-
-#-------------------------------------------------------------------------------
-# Bray-Curtis PCoA Analysis
-#-------------------------------------------------------------------------------
+## Bray-Curtis PCoA Analysis ********************************************************* ####
 
 # Convert assay data to sparse matrix
 # assays(TSE_adult)$counts <- as(assays(TSE_adult)$counts, "sparseMatrix")
@@ -87,9 +81,7 @@ adult_metadata <- as.data.frame(colData(TSE_adult)) %>%
 #     strip.text = element_text(size = 12, face = "bold")
 #   )
 
-#-------------------------------------------------------------------------------
-# Plot PCoA Results
-#-------------------------------------------------------------------------------
+## Plot PCoA Results ***************************************************************** ####
 
 # # Plot by region
 # pcoa_region <- ggplot(pcoa_adult_data, aes(x = PC1, y = PC2, color = geo)) +
@@ -130,9 +122,9 @@ adult_metadata <- as.data.frame(colData(TSE_adult)) %>%
 #   theme(legend.position = "right")
 # ggsave("final/pcoa_age_cat.png", pcoa_age_cat, width = 10, height = 8)
 
-#-------------------------------------------------------------------------------
-# Beta Diversity Analysis
-#-------------------------------------------------------------------------------
+
+## Beta Diversity Analysis *********************************************************** ####
+
 
 # Define age categories and filter metadata
 adult_metadata <- adult_metadata %>%
@@ -192,7 +184,7 @@ adult_metadata$shannon_diversity <- diversity_indices
 # print(dispersion_test)
 
 
-## Dummy-encoding *************** ####
+## Dummy-encoding ******************************************************************** ####
 # Create dummy-encoding for glm predictors: 
 # sex_combined + age_category + region + GDP_per_head + Usage
 
@@ -226,23 +218,23 @@ adult_metadata <- cbind(adult_metadata, temp_df_one_hot)
 # Remove temp tables
 rm(temp_df, temp_df_one_hot)
 
-## Dummy-encoded linear models ****************** ####
-
+## Dummy-encoded linear models ******************************************************* ####
+## No grouping ************************ ####
 
 log10_ARG_formula <- paste0("log10_ARG_load ~ ",
                             paste0(dummy_var_names[!grepl(pattern = "Africa|Asia|Infant", x = dummy_var_names)],
                                    collapse = "+")) %>% as.formula()
 
 brm_log10_ARG_load_dummy <- brm(formula = log10_ARG_formula,
-                        data = adult_metadata,
-                        family = gaussian(), 
-                        prior = c(
-                          set_prior("normal(0, 1)", class = "b"),
-                          set_prior("normal(0, 1)", class = "Intercept")
-                        ), 
-                        chains = 2, 
-                        iter = 5000,
-                        cores = parallel::detectCores(),
+                                data = adult_metadata,
+                                family = gaussian(), 
+                                prior = c(
+                                  set_prior("normal(0, 1)", class = "b"),
+                                  set_prior("normal(0, 1)", class = "Intercept")
+                                ), 
+                                chains = 2, 
+                                iter = 5000,
+                                cores = parallel::detectCores(),
 )
 
 
@@ -251,15 +243,15 @@ shannon_formula <- paste0("shannon_diversity ~ ",
                                  collapse = "+")) %>% as.formula()
 
 brm_shannon_dummy <- brm(formula = shannon_formula,
-                          data = adult_metadata,
-                          family = gaussian(), 
-                          prior = c(
-                            set_prior("normal(0, 1)", class = "b"),
-                            set_prior("normal(0, 1)", class = "Intercept")
-                          ), 
-                          chains = 2, 
-                          iter = 5000,
-                          cores = parallel::detectCores(),
+                         data = adult_metadata,
+                         family = gaussian(), 
+                         prior = c(
+                           set_prior("normal(0, 1)", class = "b"),
+                           set_prior("normal(0, 1)", class = "Intercept")
+                         ), 
+                         chains = 2, 
+                         iter = 5000,
+                         cores = parallel::detectCores(),
 )
 
 
@@ -280,7 +272,7 @@ shannon_summary <- posterior_summary(brm_shannon_dummy, pars = "b") %>%
          Response = "Shannon") %>% 
   dplyr::select(-Est.Error) %>% 
   mutate(Significant = ifelse(Q2.5 > 0 | Q97.5 < 0, TRUE, FALSE))
-  
+
 
 full_summary <- rbind(log10_ARG_summary, shannon_summary)
 
@@ -293,6 +285,169 @@ full_summary %>%
   # facet_wrap(~Response) +
   coord_flip() +
   labs(title = "95% CIs")
+
+
+
+
+## Separate models *********** ####
+
+## log10_ARG_load ************
+
+# Do separate analyses for each HIC/LMIC, MEN/WOMEN pair
+fit_list_log10_ARG_load <- list()
+for(ic in 0:1) {
+  for(sex in c("Men", "Women")) {
+    
+    my_data <- adult_metadata %>% 
+      as.data.frame() %>% 
+      filter(sex_combined == sex, 
+             income_group_HIC == ic)
+    
+    
+    if(ic == 0) {
+      
+      # Remove North America and Oceania since no observation for LMIC
+      my_formula <- paste0("log10_ARG_load ~ ",
+                           paste0(dummy_var_names[!grepl(pattern = "Oceania|North_America|Africa|Asia|Infant|HIC|sex",
+                                                         x = dummy_var_names)],
+                                  collapse = "+")) %>% as.formula()
+    }
+    
+    if(ic == 1) {
+      # Remove South America
+      my_formula <- paste0("log10_ARG_load ~ ",
+                           paste0(dummy_var_names[!grepl(pattern = "South_America|Africa|Asia|Infant|HIC|sex",
+                                                         x = dummy_var_names)],
+                                  collapse = "+")) %>% as.formula()
+    }
+
+    
+    my_fit <- brm(formula = my_formula,
+                  data = my_data,
+                  family = gaussian(), 
+                  prior = c(
+                    set_prior("normal(0, 1)", class = "b"),
+                    set_prior("normal(0, 1)", class = "Intercept")
+                    ), 
+                  chains = 2, 
+                  iter = 5000,
+                  cores = parallel::detectCores())
+    
+    fit_list[[sex]][[ic+1]] <- my_fit
+  }
+}
+
+
+## Results
+
+log10_ARG_full_summary <- lapply(c("Men", "Women"), function(sex) {
+  lapply(0:1, function(ic) {
+    
+    my_summary <- posterior_summary(fit_list_log10_ARG_load[[sex]][[ic+1]], pars = "b") %>% 
+      data.frame() %>% 
+      rownames_to_column(var = "Feature") %>% 
+      mutate(Feature = gsub("b_", "", Feature), 
+             Response = "log10_ARG") %>% 
+      dplyr::select(-Est.Error) %>% 
+      mutate(Significant = ifelse(Q2.5 > 0 | Q97.5 < 0, TRUE, FALSE), 
+             Sex = sex, income_group = ifelse(ic == 1, "HIC", "LMIC"))
+    
+    return(my_summary)
+    
+  }) %>% do.call(rbind,. )
+}) %>% 
+  do.call(rbind,. )
+
+log10_ARG_full_summary %>%  
+  filter(Feature != "Intercept") %>% 
+  ggplot() + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_errorbar(aes(x = Feature, ymin = Q2.5, ymax = Q97.5, color = Sex), 
+                position = "dodge", width = 0.2) +
+  facet_wrap(~income_group) +
+  coord_flip() +
+  labs(title = "95% CIs")
+    
+
+## Shannon Diversity ************
+# Do separate analyses for each HIC/LMIC, MEN/WOMEN pair
+fit_list_shannon <- list()
+for(ic in 0:1) {
+  for(sex in c("Men", "Women")) {
+    
+    my_data <- adult_metadata %>% 
+      as.data.frame() %>% 
+      filter(sex_combined == sex, 
+             income_group_HIC == ic)
+    
+    
+    if(ic == 0) {
+      
+      # Remove North America and Oceania since no observation for LMIC
+      my_formula <- paste0("shannon_diversity ~ ",
+                           paste0(dummy_var_names[!grepl(pattern = "Oceania|North_America|Africa|Asia|Infant|HIC|sex",
+                                                         x = dummy_var_names)],
+                                  collapse = "+")) %>% as.formula()
+    }
+    
+    if(ic == 1) {
+      # Remove South America
+      my_formula <- paste0("shannon_diversity ~ ",
+                           paste0(dummy_var_names[!grepl(pattern = "South_America|Africa|Asia|Infant|HIC|sex",
+                                                         x = dummy_var_names)],
+                                  collapse = "+")) %>% as.formula()
+    }
+    
+    
+    my_fit <- brm(formula = my_formula,
+                  data = my_data,
+                  family = gaussian(), 
+                  prior = c(
+                    set_prior("normal(0, 1)", class = "b"),
+                    set_prior("normal(0, 1)", class = "Intercept")
+                  ), 
+                  chains = 2, 
+                  iter = 5000,
+                  cores = parallel::detectCores())
+    
+    fit_list_shannon[[sex]][[ic+1]] <- my_fit
+  }
+}
+
+
+## Results
+
+shannon_full_summary <- lapply(c("Men", "Women"), function(sex) {
+  lapply(0:1, function(ic) {
+    
+    my_summary <- posterior_summary(fit_list_shannon[[sex]][[ic+1]], pars = "b") %>% 
+      data.frame() %>% 
+      rownames_to_column(var = "Feature") %>% 
+      mutate(Feature = gsub("b_", "", Feature), 
+             Response = "shannon") %>% 
+      dplyr::select(-Est.Error) %>% 
+      mutate(Significant = ifelse(Q2.5 > 0 | Q97.5 < 0, TRUE, FALSE), 
+             Sex = sex, income_group = ifelse(ic == 1, "HIC", "LMIC"))
+    
+    return(my_summary)
+    
+  }) %>% do.call(rbind,. )
+}) %>% do.call(rbind,. )
+
+shannon_full_summary %>%  
+  filter(Feature != "Intercept") %>% 
+  ggplot() + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_errorbar(aes(x = Feature, ymin = Q2.5, ymax = Q97.5, color = Sex), 
+                position = "dodge", width = 0.2) +
+  facet_wrap(~income_group) +
+  coord_flip() +
+  labs(title = "95% CIs")
+
+    
+    
+ 
+
 
 
 
