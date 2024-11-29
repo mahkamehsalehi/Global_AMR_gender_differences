@@ -5,7 +5,6 @@ library(ggpubr)
 library(patchwork)
 library(tidyverse)
 library(cowplot)
-library(mia)
 library(rstatix)
 
 # ---------------------------
@@ -14,23 +13,10 @@ library(rstatix)
 
 TSE <- readRDS("../DATA/TSE_filtered.rds")
 
-tse_metadata <- as.data.frame(colData(TSE))
+df$age_category <- factor(df$age_category, 
+                          levels = c("Infant", "Toddler", "Child", "Young Adult", "Middle-Aged Adult", "Older Adult"))
 
-tse_metadata <- tse_metadata %>%
-  mutate(
-  age_group = case_when(
-    host_age_years >= 0 & host_age_years <= 1 ~ "Infant",
-    host_age_years > 1 & host_age_years <= 3 ~ "Toddler",
-    host_age_years > 3 & host_age_years < 18 ~ "Child",
-    host_age_years >= 18 & host_age_years <= 35 ~ "Young Adult",
-    host_age_years > 35 & host_age_years <= 65 ~ "Middle-Age Adult",
-    host_age_years > 65 & host_age_years <= 100 ~ "Older Adult",
-    TRUE ~ NA_character_
-  ),
-  age_category = factor(age_category, levels = c(
-    "Infant", "Toddler", "Child", "Young Adult", "Middle-Age Adult", "Older Adult"
-  ))
-)
+tse_metadata <- as.data.frame(colData(TSE))
 
 metadata_hic <- tse_metadata %>%
   filter(income_group == "HIC") %>%
@@ -67,7 +53,7 @@ age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = log_ARG_load, fi
   ) +
   facet_wrap(~age_category, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Gender", y = "ARG load (natural log)") +
+  labs(x = "Gender", y = "ARG load (natural log RPKM)") +
   theme_minimal() +
   stat_compare_means(
     comparisons = list(
@@ -98,13 +84,13 @@ age_shannon_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_dive
   ) +
   facet_wrap(~age_category, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Gender", y = "Resistome diversity") +
+  labs(x = "Gender", y = "ARG diversity") +
   theme_minimal() +
   stat_compare_means(
     comparisons = list(
       c("Women", "Men")
     ),
-    aes(label = ..p.signif..),
+    aes(label = "p.signif"),
     method = "wilcox.test",
     p.adjust.method = "BH",
     hide.ns = FALSE
@@ -122,18 +108,14 @@ age_shannon_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_dive
 age_arg_scatterplot_hic <- ggplot(metadata_hic, aes(x = host_age_years, y = log_ARG_load, color = gender)) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   geom_smooth(method = "loess", se = TRUE, linewidth = 1) +
-  geom_point(size=0.1, alpha=0.1) +  
   labs(
-    x = "Age (y)",
-    y = "ARG load (log RPKM)",
+    x = "Age (years)",
+    y = "ARG load (natural log RPKM)",
     color = "Gender"
   ) +
-  #theme_minimal() +
-  theme_bw(20) +
+  theme_minimal() +
   theme(
-    axis.line = element_line(color = "black")
-    ) 
-    
+    axis.line = element_line(color = "black"))
 
 # Scatterplot for Shannon Diversity vs. Age
 age_shannon_scatterplot_hic <- ggplot(metadata_hic, aes(x = host_age_years, y = shannon_diversity, color = gender)) +
@@ -141,7 +123,7 @@ age_shannon_scatterplot_hic <- ggplot(metadata_hic, aes(x = host_age_years, y = 
   geom_smooth(method = "loess", se = TRUE, linewidth = 1) +
   labs(
     x = "Age (years)",
-    y = "Resistome diversity",
+    y = "ARG diversity",
     color = "Gender"
   ) +
   theme_minimal() +
@@ -164,7 +146,7 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = log_ARG_load, 
   ) +
   facet_wrap(~age_category, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Gender", y = "ARG load (natural log)") +
+  labs(x = "Gender", y = "ARG load (natural log RPKM)") +
   theme_minimal() +
   stat_compare_means(
     comparisons = list(
@@ -196,7 +178,7 @@ age_shannon_boxplot_lmic <-ggplot(metadata_lmic, aes(x = gender, y = shannon_div
   ) +
   facet_wrap(~age_category, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Gender", y = "Resistome diversity") +
+  labs(x = "Gender", y = "ARG diversity") +
   theme_minimal() +
   stat_compare_means(
     comparisons = list(
@@ -221,7 +203,7 @@ age_arg_scatterplot_lmic <- ggplot(metadata_lmic, aes(x = host_age_years, y = lo
   geom_smooth(method = "loess", se = TRUE, linewidth = 1) +
   labs(
     x = "Age (years)",
-    y = "ARG load (natural log)",
+    y = "ARG load (natural log RPKM)",
     color = "Gender"
   ) +
   theme_minimal() +
@@ -233,7 +215,7 @@ age_shannon_scatterplot_lmic  <- ggplot(metadata_lmic, aes(x = host_age_years, y
   geom_smooth(method = "loess", se = TRUE, linewidth = 1) +
   labs(
     x = "Age (years)",
-    y = "Resistome diversity",
+    y = "ARG diversity",
     color = "Gender"
   ) +
   theme_minimal() +
@@ -257,7 +239,7 @@ age_arg_boxplot_female_hic <-ggplot(women_data_hic, aes(x = age_category, y = lo
     alpha = 1,
     show.legend = FALSE
   ) +
-  labs(x = "Age category", y = "ARG load (natural log)") +
+  labs(x = "Age category", y = "ARG load (natural log RPKM)") +
   theme_minimal() +
   theme_minimal() +
   stat_compare_means(
@@ -284,7 +266,7 @@ age_shannon_boxplot_female_hic <- ggplot(women_data_hic,
     alpha = 0.7,
     show.legend = FALSE
   ) +
-  labs(x = "Age Category", y = "Resistome diversity") +
+  labs(x = "Age Category", y = "ARG diversity") +
   theme_minimal() +
   stat_compare_means(
     comparisons = comparisons,
@@ -305,7 +287,7 @@ age_arg_scatterplot_female_hic <- ggplot(women_data_hic, aes(x = host_age_years,
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(
     x = "Age (years)",
-    y = "ARG load (natural log)",
+    y = "ARG load (natural log RPKM)",
     color = "Gender"
   ) +
   theme_minimal() +
@@ -319,7 +301,7 @@ age_shannon_scatterplot_female_hiv <- ggplot(women_data_hic, aes(x = host_age_ye
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(
     x = "Age (years)",
-    y = "Resistome diversity",
+    y = "ARG diversity",
     color = "Gender"
   ) +
   theme_minimal() +
@@ -347,7 +329,7 @@ age_arg_boxplot_female_lmic <- ggplot(women_data_lmic, aes(x = age_category, y =
     alpha = 1,
     show.legend = FALSE
   ) +
-  labs(x = "Age category", y = "ARG load (natural log)") +
+  labs(x = "Age category", y = "ARG load (natural log RPKM)") +
   theme_minimal() +
   theme(legend.position = "none") +
   stat_compare_means(
@@ -374,7 +356,7 @@ age_shannon_boxplot_female_lmic <- ggplot(women_data_lmic,
     alpha = 1,
     show.legend = FALSE
   ) +
-  labs(x = "Age category", y = "Resistome diversity") +
+  labs(x = "Age category", y = "ARG diversity") +
   theme_minimal() +
   theme(legend.position = "none") +
   stat_compare_means(
@@ -396,7 +378,7 @@ age_arg_scatterplot_female_lmic <- ggplot(women_data_lmic, aes(x = host_age_year
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(
     x = "Age (years)",
-    y = "ARG load (natural log)",
+    y = "ARG load (natural log RPKM)",
     color = "Gender"
   ) +
   theme_minimal() +
@@ -410,7 +392,7 @@ age_shannon_scatterplot_female_lmic <- ggplot(women_data_lmic, aes(x = host_age_
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(
     x = "Age (years)",
-    y = "Resistome diversity",
+    y = "ARG diversity",
     color = "Gender"
   ) +
   theme_minimal() +
@@ -427,7 +409,7 @@ combined_arg_age_hic <- plot_grid(
 )
 
 # Save the figure
-ggsave("../RESULTS/FIGURES/arg_age_hic.png", combined_arg_age_hic, width = 14, height = 8)
+ggsave("RESULTS/FIGURES/arg_age_hic.png", combined_arg_age_hic, width = 14, height = 8)
 
 
 # Combine Scatterplots and Boxplots 
@@ -439,7 +421,7 @@ combined_arg_age_lmic <- plot_grid(
 )
 
 # Save the combined figure
-ggsave("../RESULTS/FIGURES/arg_age_lmic.png", combined_arg_age_lmic, width = 14, height = 8)
+ggsave("RESULTS/FIGURES/arg_age_lmic.png", combined_arg_age_lmic, width = 14, height = 8)
 
 
 # Combine Scatterplots and Boxplots 
@@ -451,7 +433,7 @@ combined_shannon_age_hic <- plot_grid(
 )
 
 # Save the combined figure
-ggsave("../RESULTS/FIGURES/shannon_age_hic.png", combined_shannon_age_hic, width = 14, height = 8)
+ggsave("RESULTS/FIGURES/shannon_age_hic.png", combined_shannon_age_hic, width = 14, height = 8)
 
 
 # Combine Scatterplots and Boxplots 
@@ -463,11 +445,11 @@ combined_shannon_age_lmic <- plot_grid(
 )
 
 # Save the combined figure
-ggsave("../RESULTS/FIGURES/shannon_age_lmic.png", combined_shannon_age_lmic, width = 14, height = 8)
+ggsave("RESULTS/FIGURES/shannon_age_lmic.png", combined_shannon_age_lmic, width = 14, height = 8)
 
-# ---------------------------
+# -----------------------------
 # Statistical Analysis: Wilcoxon Tests
-# ---------------------------
+# -----------------------------
 
 # Perform Wilcoxon tests for ARG Load
 arg_load_results <- tse_metadata %>%
@@ -532,4 +514,4 @@ pairwise_results <- bind_rows(pairwise_arg_load, pairwise_shannon) %>%
   arrange(variable, group1, group2)
 
 # View the formatted pairwise results table
-print(pairwise_results, n = Inf)
+print(pairwise_results ,n = Inf)
