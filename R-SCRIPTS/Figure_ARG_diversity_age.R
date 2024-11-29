@@ -122,14 +122,18 @@ age_shannon_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_dive
 age_arg_scatterplot_hic <- ggplot(metadata_hic, aes(x = host_age_years, y = log_ARG_load, color = gender)) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   geom_smooth(method = "loess", se = TRUE, linewidth = 1) +
+  geom_point(size=0.1, alpha=0.1) +  
   labs(
-    x = "Age (years)",
-    y = "ARG load (natural log)",
+    x = "Age (y)",
+    y = "ARG load (log RPKM)",
     color = "Gender"
   ) +
-  theme_minimal() +
+  #theme_minimal() +
+  theme_bw(20) +
   theme(
-    axis.line = element_line(color = "black"))
+    axis.line = element_line(color = "black")
+    ) 
+    
 
 # Scatterplot for Shannon Diversity vs. Age
 age_shannon_scatterplot_hic <- ggplot(metadata_hic, aes(x = host_age_years, y = shannon_diversity, color = gender)) +
@@ -528,4 +532,4 @@ pairwise_results <- bind_rows(pairwise_arg_load, pairwise_shannon) %>%
   arrange(variable, group1, group2)
 
 # View the formatted pairwise results table
-print(pairwise_results ,n = Inf)
+print(pairwise_results, n = Inf)
