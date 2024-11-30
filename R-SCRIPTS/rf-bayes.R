@@ -1,3 +1,5 @@
+# Set working directory and load necessary libraries
+# setwd("/scratch/project_2008149/USER_WORKSPACES/mahkameh/women_amr/")
 library(tidyverse)
 library(vegan)
 library(scater)
@@ -18,7 +20,7 @@ library(glmnet)
 #-------------------------------------------------------------------------------
 
 # Load TSE object
-TSE <- readRDS("DATA/TSE.rds")
+TSE <- readRDS("../DATA/TSE.rds")
 
 # Filter samples with complete sex and age data
 non_na_samples <- !is.na(colData(TSE)$sex_combined) & !is.na(colData(TSE)$host_age_years)
@@ -207,6 +209,10 @@ glm_arg_load <- glm(
     family = gaussian()
   )
   summary(glm_arg_load)
+
+#}
+
+save.image()
 
 # Variance Inflation Factor (VIF) to check multicollinearity
 vif_model <- lm(shannon_diversity ~ sex_combined + age_category + region + GDP_per_head + Usage, data = adult_metadata)

@@ -1,5 +1,6 @@
 
 # Load Necessary Libraries
+library(mia)
 library(ggplot2)
 library(tidyverse)
 library(vegan)
@@ -15,7 +16,7 @@ male_color <- "#00BFC4"
 female_color <- "#F8766D" 
 
 # Load Your Data
-TSE <- readRDS("DATA/TSE.rds")
+TSE <- readRDS("../DATA/TSE.rds")
 df <- as.data.frame(colData(TSE))
 
 # Define New Age Categories with Labels
