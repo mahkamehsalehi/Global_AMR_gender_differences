@@ -294,7 +294,7 @@ age_arg_scatterplot_female_hic <- ggplot(women_data_hic, aes(x = host_age_years,
   )
 
 # Shannon Diversity Scatterplot for Women
-age_shannon_scatterplot_female_hiv <- ggplot(women_data_hic, aes(x = host_age_years, y = shannon_diversity, color = gender)) +
+age_shannon_scatterplot_female_hic <- ggplot(women_data_hic, aes(x = host_age_years, y = shannon_diversity, color = gender)) +
   geom_smooth(method = "loess", se = TRUE, linewidth = 1) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(

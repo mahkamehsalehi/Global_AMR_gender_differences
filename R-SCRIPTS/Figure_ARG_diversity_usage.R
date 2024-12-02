@@ -14,7 +14,6 @@ filtered_metadata <- tse_metadata %>%
     geo_loc_name_country_calc != "Zimbabwe"
   )
 
-
 # Define a common theme for plots
 common_theme <- theme_classic(base_size = 14) +
   theme(
@@ -31,12 +30,12 @@ common_theme <- theme_classic(base_size = 14) +
 usage_filtered_metadata <- tse_metadata %>%
   mutate(
     Usage_group = case_when(
-      Usage > 11  ~ "Above 11",
-      Usage <= 11 ~ "11 or Below",
+      Usage > 10  ~ "Above 10",
+      Usage <= 10 ~ "10 or Below",
       TRUE ~ NA_character_
     )
   ) %>%
-  mutate(Usage_group = factor(Usage_group, levels = c("11 or Below", "Above 11"))) %>%
+  mutate(Usage_group = factor(Usage_group, levels = c("10 or Below", "Above 10"))) %>%
   drop_na(gender, log_ARG_load, Usage_group, income_group)
 
 metadata_hic <- usage_filtered_metadata %>%
@@ -60,7 +59,7 @@ usage_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender,
   stat_compare_means(aes(x = gender, 
                          y = log_ARG_load),
                      comparisons = list(c("Women", "Men")), 
-                     label = "p.signif", 
+                     label = "p.format", 
                      method = "wilcox.test", 
                      p.adjust.method = "BH",
                      hide.ns = FALSE) +
@@ -80,12 +79,12 @@ usage_shannon_boxplot_hic <- ggplot(metadata_hic,
                width = 0.6, 
                alpha = 1, 
                show.legend = FALSE) +
-  labs(x = "Gender", y = "Resistome Diversity") +
+  labs(x = "Gender", y = "ARG Diversity") +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   stat_compare_means(aes(x = sgender, y = shannon_diversity),
                      comparisons = list(c("Women", "Men")), 
-                     label = "p.signif", 
+                     label = "p.format", 
                      method = "wilcox.test", 
                      p.adjust.method = "BH",
                      hide.ns = FALSE) +
@@ -100,10 +99,10 @@ usage_shannon_boxplot_hic <- ggplot(metadata_hic,
 usage_arg_boxplot_female_hic <- ggplot(metadata_hic %>% filter(gender == "Women"), 
                                    aes(x = Usage_group, y = log_ARG_load, fill = "#F8766D")) +
   geom_boxplot(position = position_dodge(width = 0.8), outlier.shape = NA, width = 0.6, alpha = 1, show.legend = FALSE) +
-  labs(x = "Antibiotic Usage (DDD)", y = "ARG Load (log natural)") +
+  labs(x = "Antibiotic Use (DDD)", y = "ARG Load (log natural)") +
   theme_minimal() +
   theme(legend.position = "none") +
-  stat_compare_means(comparisons = list(c("11 or Below", "Above 11")), label = "p.signif", method = "wilcox.test", hide.ns = FALSE) +
+  stat_compare_means(comparisons = list(c("10 or Below", "Above 10")), label = "p.format", method = "wilcox.test", hide.ns = FALSE) +
   theme_minimal() +
   theme(axis.line = element_line(color = "black"),
         strip.background = element_rect(color = "black", size = 0.7)
@@ -113,23 +112,14 @@ usage_arg_boxplot_female_hic <- ggplot(metadata_hic %>% filter(gender == "Women"
 usage_shannon_boxplot_female_hic <- ggplot(metadata_hic %>% filter(gender == "Women"),
                                        aes(x = Usage_group, y = shannon_diversity, fill = "#F8766D")) +
   geom_boxplot(position = position_dodge(width = 0.8), outlier.shape = NA, width = 0.6, alpha = 1, show.legend = FALSE) +
-  labs(x = "Antibiotic Usagec(DDD)", y = "Resistome Diversity") +
+  labs(x = "Antibiotic Use(DDD)", y = "ARG Diversity") +
   theme_minimal() +
   theme(legend.position = "none") +
-  stat_compare_means(comparisons = list(c("11 or Below", "Above 11")), label = "p.signif", method = "wilcox.test", hide.ns = FALSE) +
+  stat_compare_means(comparisons = list(c("10 or Below", "Above 10")), label = "p.format", method = "wilcox.test", hide.ns = FALSE) +
   theme_minimal() +
   theme(axis.line = element_line(color = "black"),
         strip.background = element_rect(color = "black", size = 0.7)
   )
-
-# Combine and display usage plots for women only
-combined_figure_usage_female <- usage_arg_boxplot_both + usage_shannon_boxplot_both +
-  usage_arg_boxplot_female + usage_shannon_boxplot_female +
-  plot_layout(ncol = 2, nrow = 2) +
-  plot_annotation(tag_levels = 'a')
-ggsave("RESULTS/FIGURES/usage_female_panel.pdf", combined_figure_usage_female, width = 10, height = 6)
-
-
 
 
 # Plot ARG load by gender across usage groups
@@ -147,7 +137,7 @@ usage_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender,
   stat_compare_means(aes(x = gender, 
                          y = log_ARG_load),
                      comparisons = list(c("Women", "Men")), 
-                     label = "p.signif", 
+                     label = "p.format", 
                      method = "wilcox.test", 
                      p.adjust.method = "BH",
                      hide.ns = FALSE) +
@@ -167,12 +157,12 @@ usage_shannon_boxplot_lmic <- ggplot(metadata_lmic,
                width = 0.6, 
                alpha = 1, 
                show.legend = FALSE) +
-  labs(x = "Gender", y = "Resistome Diversity") +
+  labs(x = "Gender", y = "ARG Diversity") +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   stat_compare_means(aes(x = sgender, y = shannon_diversity),
                      comparisons = list(c("Women", "Men")), 
-                     label = "p.signif", 
+                     label = "p.format", 
                      method = "wilcox.test", 
                      p.adjust.method = "BH",
                      hide.ns = FALSE) +
@@ -187,10 +177,10 @@ usage_shannon_boxplot_lmic <- ggplot(metadata_lmic,
 usage_arg_boxplot_female_lmic <- ggplot(metadata_lmic %>% filter(gender == "Women"), 
                                        aes(x = Usage_group, y = log_ARG_load, fill = "#F8766D")) +
   geom_boxplot(position = position_dodge(width = 0.8), outlier.shape = NA, width = 0.6, alpha = 1, show.legend = FALSE) +
-  labs(x = "Antibiotic Usage (DDD)", y = "ARG Load (log natural)") +
+  labs(x = "Antibiotic Use (DDD)", y = "ARG Load (log natural)") +
   theme_minimal() +
   theme(legend.position = "none") +
-  stat_compare_means(comparisons = list(c("11 or Below", "Above 11")), label = "p.signif", method = "wilcox.test", hide.ns = FALSE) +
+  stat_compare_means(comparisons = list(c("10 or Below", "Above 10")), label = "p.format", method = "wilcox.test", hide.ns = FALSE) +
   theme_minimal() +
   theme(axis.line = element_line(color = "black"),
         strip.background = element_rect(color = "black", size = 0.7)
@@ -200,10 +190,10 @@ usage_arg_boxplot_female_lmic <- ggplot(metadata_lmic %>% filter(gender == "Wome
 usage_shannon_boxplot_female_lmic <- ggplot(metadata_lmic %>% filter(gender == "Women"),
                                            aes(x = Usage_group, y = shannon_diversity, fill = "#F8766D")) +
   geom_boxplot(position = position_dodge(width = 0.8), outlier.shape = NA, width = 0.6, alpha = 1, show.legend = FALSE) +
-  labs(x = "Antibiotic Usage (DDD)", y = "Resistome Diversity") +
+  labs(x = "Antibiotic Use (DDD)", y = "ARG Diversity") +
   theme_minimal() +
   theme(legend.position = "none") +
-  stat_compare_means(comparisons = list(c("11 or Below", "Above 11")), label = "p.signif", method = "wilcox.test", hide.ns = FALSE) +
+  stat_compare_means(comparisons = list(c("10 or Below", "Above 10")), label = "p.signif", method = "wilcox.test", hide.ns = FALSE) +
   theme_minimal() +
   theme(axis.line = element_line(color = "black"),
         strip.background = element_rect(color = "black", size = 0.7)
