@@ -14,6 +14,4 @@ se <- SummarizedExperiment(
   colData = col_data
 )
 
-# Check the resulting SE object
-se
 saveRDS(se, file = "DATA/summarized_experiment.rds")

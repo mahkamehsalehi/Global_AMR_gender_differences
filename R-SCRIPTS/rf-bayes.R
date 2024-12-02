@@ -1,5 +1,3 @@
-# Set working directory and load necessary libraries
-# setwd("/scratch/project_2008149/USER_WORKSPACES/mahkameh/women_amr/")
 library(tidyverse)
 library(vegan)
 library(scater)
@@ -14,13 +12,15 @@ library(randomForest)
 library(xgboost)
 library(brms)
 library(glmnet)
+library(jtools)
+
 
 #-------------------------------------------------------------------------------
 # Data Loading and Initial Filtering
 #-------------------------------------------------------------------------------
 
 # Load TSE object
-TSE <- readRDS("../DATA/TSE.rds")
+TSE <- readRDS("DATA/TSE_filtered.rds")
 
 # Filter samples with complete sex and age data
 non_na_samples <- !is.na(colData(TSE)$sex_combined) & !is.na(colData(TSE)$host_age_years)
@@ -196,7 +196,7 @@ print(dispersion_test)
 
 # GLM for Shannon Diversity
 glm_diversity <- glm(
-  shannon_diversity ~ sex_combined + age_category + region + GDP_per_head + Usage,
+  shannon_diversity ~ sex_combined + age_category + geo_loc_name_country_continent_calc + GDP_per_head + Usage,
   data = adult_metadata,
   family = gaussian()
 )
@@ -204,15 +204,16 @@ summary(glm_diversity)
 
 # GLM for log10_ARG_load
 glm_arg_load <- glm(
-    log10_ARG_load ~ sex_combined + age_category + region + GDP_per_head + Usage,
+    log_ARG_load ~ sex_combined + age_category + geo_loc_name_country_continent_calc + GDP_per_head + Usage,
     data = adult_metadata,
     family = gaussian()
   )
-  summary(glm_arg_load)
+summary(glm_arg_load)
 
-#}
+# Get the summary with exponentiated estimates
+summ(glm_arg_load, exp = TRUE, digits = 6, confint = TRUE)
+summ(glm_diversity, digits = 6, confint = TRUE)
 
-save.image()
 
 # Variance Inflation Factor (VIF) to check multicollinearity
 vif_model <- lm(shannon_diversity ~ sex_combined + age_category + region + GDP_per_head + Usage, data = adult_metadata)
