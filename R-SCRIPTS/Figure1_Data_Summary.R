@@ -19,15 +19,16 @@ df$sex_combined <- recode(df$sex_combined, "male" = "Men", "female" = "Women")
 df$sex_combined <- factor(df$sex_combined, levels = c("Women", "Men"))
 
 # Define custom plot theme
-common_theme <- theme_classic(base_size = 14) +
+s <- 14 # scale for the figure size definitions
+common_theme <- theme_classic(base_size = s * 1.4) +
   theme(
-    plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12),
+    plot.title = element_text(face = "bold", size = s * 1.2, hjust = 0.5),
+    axis.text = element_text(size = s * 1),
+    axis.title = element_text(size = s * 1.2),
     legend.position = "none",
     axis.line = element_line(color = "black"),
     strip.background = element_rect(fill = "white", color = "black"),
-    strip.text = element_text(size = 10, face = "bold"),
+    strip.text = element_text(size = s * 1, face = "bold"),
   )
 
 # Define Plot p1: Host Age Distribution by Gender
@@ -158,4 +159,10 @@ combined_plot <- cobined_plot +
 
 print(combined_plot)
 
-ggsave("RESULTS/FIGURES/Data_Summary1.png", combined_plot, width = 12, height = 8, dpi = 300)
+#ggsave("RESULTS/FIGURES/Data_Summary1.png", combined_plot, width = 12, height = 8, dpi = 300)
+
+# This generates publication quality printout:
+library(Cairo)
+CairoJPEG("RESULTS/FIGURES/Data_Summary1.png", combined_plot, width = 600, height = 600, dpi = 300)
+dev.off()
+
