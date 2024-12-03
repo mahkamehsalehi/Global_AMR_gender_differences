@@ -160,7 +160,7 @@ combined_plot <- plot_grid(
 
 # This generates publication quality printout:
 library(Cairo)
-CairoJPEG("RESULTS/FIGURES/Figure1_datasummary.jpg", width=600, height=800, quality=100)
+CairoJPEG("RESULTS/FIGURES/Fig1_datasummary.jpg", width=600, height=800, quality=100)
 print(combined_plot)
 dev.off()
 

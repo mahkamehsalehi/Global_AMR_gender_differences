@@ -128,7 +128,7 @@ combined_figure_income <- plot_grid(
 
 # This generates publication quality printout:
 library(Cairo)
-CairoJPEG("RESULTS/FIGURES/Figure3.jpg", width=1000, height=480, quality=100)
+CairoJPEG("RESULTS/FIGURES/Fig3.jpg", width=1000, height=480, quality=100)
 print(combined_figure_income)
 dev.off()
 
