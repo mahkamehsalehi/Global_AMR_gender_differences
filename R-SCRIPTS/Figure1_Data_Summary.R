@@ -39,7 +39,7 @@ common_theme <- theme_classic(base_size = s) +
 p1 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = host_age_years, fill = sex_combined)) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
-  geom_histogram(binwidth = 5, position = position_dodge(width = 4), color = "black", alpha = 0.7) +
+  geom_histogram(binwidth = 5, position = position_dodge(width = 5), color = "black", alpha = 0.7) +
   labs(
     x = "Age (y)",
     y = "Count (N)",
@@ -150,19 +150,13 @@ ggplot(data = world_data) +
   )
 
 
-
+# Create the combined plot with tags for all panels
 combined_plot <- plot_grid(
-  #plot_grid(p1, p2, ncol = 2, rel_heights = c(5.5, 5)),
-  #plot_grid(p3, p4, ncol = 2, rel_heights = c(5.5, 5)),
   plot_grid(p1, p2, p3, p4, ncol = 2, labels="auto"),
   p5 + annotate("text", x=-180, y=100, label="e", size=5) + labs(x="", y=""), 
   ncol = 1,
   rel_heights = c(6, 6)
 )
-
-print(combined_plot)
-
-#ggsave("RESULTS/FIGURES/Data_Summary1.png", combined_plot, width = 12, height = 8, dpi = 300)
 
 # This generates publication quality printout:
 library(Cairo)

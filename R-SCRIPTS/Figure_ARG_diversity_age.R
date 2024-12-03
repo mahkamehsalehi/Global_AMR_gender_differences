@@ -16,25 +16,56 @@ TSE <- readRDS("DATA/TSE_filtered.rds")
 
 tse_metadata <- as.data.frame(colData(TSE))
 
+tse_metadata <- tse_metadata %>%
+  mutate(age_group = case_when(
+    host_age_years >= 0 & host_age_years <= 1 ~ "Infant",
+    host_age_years > 1 & host_age_years <= 3 ~ "Toddler",
+    host_age_years > 3 & host_age_years <= 12 ~ "Children",
+    host_age_years > 12 & host_age_years <= 20 ~ "Teenager",
+    host_age_years >= 20 & host_age_years < 35 ~ "Young Adult",
+    host_age_years >= 35 & host_age_years < 65 ~ "Middle-Aged Adult",
+    host_age_years >= 65 & host_age_years < 80 ~ "Older Adult",
+    host_age_years >= 80 & host_age_years <= 100 ~ "Oldest Adult",
+  ))
+
+tse_metadata <- tse_metadata %>%
+  mutate(age_group = factor(
+    age_group,
+    levels = c(
+      "Infant",
+      "Toddler",
+      "Children",
+      "Teenager",
+      "Young Adult",
+      "Middle-Aged Adult",
+      "Older Adult",
+      "Oldest Adult"
+    )
+  ))
+
+
 metadata_hic <- tse_metadata %>%
   filter(income_group == "HIC") %>%
-  filter(!is.na(age_category) & !is.na(log_ARG_load))
+  filter(!is.na(age_group) & !is.na(log_ARG_load))
 
 metadata_lmic <- tse_metadata %>%
   filter(income_group == "LMIC") %>%
-  filter(!is.na(age_category) & !is.na(log_ARG_load))
+  filter(!is.na(age_group) & !is.na(log_ARG_load))
+
 
 # ---------------------------
 # Define Custom Plot Theme
 # ---------------------------
-
 comparisons <- list(
   c("Infant", "Toddler"),
-  c("Toddler", "Child"),
-  c("Child", "Young Adult"),
-  c("Young Adult", "Middle Adult"),
-  c("Middle Adult", "Older Adult")
+  c("Toddler", "Children"),
+  c("Children", "Teenager"),
+  c("Teenager", "Young Adult"),
+  c("Young Adult", "Middle-Aged Adult"),
+  c("Middle-Aged Adult", "Older Adult"),
+  c("Older Adult", "Oldest Adult")
 )
+
 
 # ---------------------------
 # Visualization: Boxplots for HIC
@@ -49,7 +80,7 @@ age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = log_ARG_load, fi
     alpha = 1,
     show.legend = FALSE
   ) +
-  facet_wrap(~age_category, scales = "fixed", nrow = 1) +
+  facet_wrap(~age_group, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(x = "Gender", y = "ARG load (natural log RPKM)") +
   theme_minimal() +
@@ -80,7 +111,7 @@ age_shannon_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_dive
     alpha = 1,
     show.legend = FALSE
   ) +
-  facet_wrap(~age_category, scales = "fixed", nrow = 1) +
+  facet_wrap(~age_group, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(x = "Gender", y = "ARG diversity") +
   theme_minimal() +
@@ -142,7 +173,7 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = log_ARG_load, 
     alpha = 1,
     show.legend = FALSE
   ) +
-  facet_wrap(~age_category, scales = "fixed", nrow = 1) +
+  facet_wrap(~age_group, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(x = "Gender", y = "ARG load (natural log RPKM)") +
   theme_minimal() +
@@ -174,7 +205,7 @@ age_shannon_boxplot_lmic <-ggplot(metadata_lmic, aes(x = gender, y = shannon_div
     alpha = 1,
     show.legend = FALSE
   ) +
-  facet_wrap(~age_category, scales = "fixed", nrow = 1) +
+  facet_wrap(~age_group, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(x = "Gender", y = "ARG diversity") +
   theme_minimal() +
@@ -229,7 +260,7 @@ age_shannon_scatterplot_lmic  <- ggplot(metadata_lmic, aes(x = host_age_years, y
 women_data_hic <- metadata_hic %>% filter(gender == "Women")
 
 # ARG Load Boxplot for Women
-age_arg_boxplot_female_hic <-ggplot(women_data_hic, aes(x = age_category, y = log_ARG_load, fill = "#F8766D")) +
+age_arg_boxplot_female_hic <-ggplot(women_data_hic, aes(x = age_group, y = log_ARG_load, fill = "#F8766D")) +
   geom_boxplot(
     position = position_dodge(width = 0.8),
     outlier.shape = NA,
@@ -256,7 +287,7 @@ age_arg_boxplot_female_hic <-ggplot(women_data_hic, aes(x = age_category, y = lo
 
 # Shannon Diversity Boxplot for Women
 age_shannon_boxplot_female_hic <- ggplot(women_data_hic, 
-                                 aes(x = age_category, y = shannon_diversity, fill = "#F8766D")) +
+                                 aes(x = age_group, y = shannon_diversity, fill = "#F8766D")) +
   geom_boxplot(
     position = position_dodge(width = 0.8),
     outlier.shape = NA,
@@ -319,7 +350,7 @@ age_shannon_scatterplot_female_hic <- ggplot(women_data_hic, aes(x = host_age_ye
 women_data_lmic <- metadata_lmic %>% filter(gender == "Women")
 
 # ARG Load Boxplot for Women
-age_arg_boxplot_female_lmic <- ggplot(women_data_lmic, aes(x = age_category, y = log_ARG_load, fill = "#F8766D")) +
+age_arg_boxplot_female_lmic <- ggplot(women_data_lmic, aes(x = age_group, y = log_ARG_load, fill = "#F8766D")) +
   geom_boxplot(
     position = position_dodge(width = 0.8),
     outlier.shape = NA,
@@ -346,7 +377,7 @@ age_arg_boxplot_female_lmic <- ggplot(women_data_lmic, aes(x = age_category, y =
 
 # Shannon Diversity Boxplot for Women
 age_shannon_boxplot_female_lmic <- ggplot(women_data_lmic, 
-                                     aes(x = age_category, y = shannon_diversity, fill = "#F8766D")) +
+                                     aes(x = age_group, y = shannon_diversity, fill = "#F8766D")) +
   geom_boxplot(
     position = position_dodge(width = 0.8),
     outlier.shape = NA,
