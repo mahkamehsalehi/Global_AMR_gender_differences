@@ -217,24 +217,27 @@ saveRDS(TSE, file="DATA/TSE.rds")
 rm(list  = ls())
 
 TSE <- read_rds("DATA/TSE.rds")
-# Categorize age into meaningful groups (age_category)
+
+# Create the age_group column in colData
 colData(TSE) <- colData(TSE) %>%
-  as_tibble() %>%
-  mutate(
-    age_category = case_when(
-      host_age_years >= 0 & host_age_years <= 1 ~ "Infant",
-      host_age_years > 1 & host_age_years <= 3 ~ "Toddler",
-      host_age_years > 3 & host_age_years <= 18 ~ "Child",
-      host_age_years > 18 & host_age_years <= 35 ~ "Young Adult",
-      host_age_years > 35 & host_age_years <= 65 ~ "Middle-Age Adult",
-      host_age_years > 65 & host_age_years <= 100 ~ "Older Adult",
-      TRUE ~ NA_character_
-    ),
-    age_category = factor(age_category, levels = c(
-      "Infant", "Toddler", "Child", "Young Adult", "Middle-Age Adult", "Older Adult"
-    ))
-  ) %>%
-  as("DataFrame")
+  as.data.frame() %>%
+  mutate(age_category = case_when(
+    host_age_years >= 0 & host_age_years <= 1 ~ "Infant",
+    host_age_years > 1 & host_age_years <= 3 ~ "Toddler",
+    host_age_years > 3 & host_age_years <= 12 ~ "Children",
+    host_age_years > 12 & host_age_years < 20 ~ "Teenager",
+    host_age_years >= 20 & host_age_years < 35 ~ "Young Adult",
+    host_age_years >= 35 & host_age_years < 65 ~ "Middle-Aged Adult",
+    host_age_years >= 65 & host_age_years < 80 ~ "Older Adult",
+    host_age_years >= 80 & host_age_years <= 100 ~ "Oldest Adult",
+    TRUE ~ NA_character_
+  )) %>%
+  mutate(age_category = factor(age_category, levels = c(
+    "Infant", "Toddler", "Children", "Teenager",
+    "Young Adult", "Middle-Aged Adult", "Older Adult", "Oldest Adult"
+  ))) %>%
+  DataFrame()
+
 
 # Save the TreeSummarizedExperiment object
 saveRDS(TSE, file="DATA/TSE.rds")
