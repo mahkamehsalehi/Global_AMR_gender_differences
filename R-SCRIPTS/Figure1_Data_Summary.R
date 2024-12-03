@@ -49,15 +49,19 @@ p1 <- ggplot(df %>% filter(!is.na(sex_combined)),
 
 
 # Define Plot p2: Antibiotic Resistance Load Distribution
+library(scales)
 p2 <- ggplot(df %>% filter(!is.na(sex_combined)), 
-                   aes(x = log_ARG_load, fill = sex_combined)) +
+                   aes(x = ARG_load, fill = sex_combined)) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
-  geom_bar(position = position_dodge(width = 0.14), color = "black", alpha = 0.7, stat = "bin", binwidth = 0.2) +
+  geom_bar(position = position_dodge(), color = "black", alpha = 0.7, stat = "bin", binwidth = 0.2) +
   labs(
-    x = "ARG load (log RPKM)",
+    x = "ARG load (RPKM)",
     y = "Count (N)",
     fill = "Gender"
   ) +
+  scale_x_continuous(transf="log10",
+                     breaks=10^(2:5),
+                     labels=trans_format("log10", math_format(10^.x))) +
   common_theme
 
 # Define Plot p3: World Bank Income Group Distribution
