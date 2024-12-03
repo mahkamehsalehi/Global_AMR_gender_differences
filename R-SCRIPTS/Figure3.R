@@ -30,7 +30,7 @@ filtered_metadata_female_no_outliers <- filtered_metadata_no_outliers %>%
 gender_colors <- c("Women" = "#F8766D", "Men" = "#619CFF")
 
 # Ensure consistent themes and uniform styling
-custom_theme <- theme_minimal(30) +
+custom_theme <- theme_minimal(24) +
   theme(
     axis.line = element_line(color = "black"),
     strip.background = element_rect(color = "black", size = 1),
