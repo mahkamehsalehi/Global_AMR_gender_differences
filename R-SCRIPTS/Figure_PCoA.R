@@ -9,7 +9,7 @@ library(tidyverse)
 # Data Preparation
 # ---------------------------
 
-tse <- readRDS("../DATA/TSE_filtered.rds")
+tse <- readRDS("DATA/TSE_filtered.rds")
 
 # Extract metadata from the TSE object and convert it to a data frame
 tse_metadata <- as.data.frame(colData(tse))

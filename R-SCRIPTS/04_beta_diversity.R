@@ -2,7 +2,7 @@ library(mia)
 library(ggplot2)
 library(dplyr)
 # Creates Figure 4 
-tse <- readRDS("data/TSE_gender_age.rds")
+tse <- readRDS("DATA/TSE_gender_age.rds")
 pcoa <- as.data.frame(reducedDim(tse, "PCoA")) 
 
 sample_data <- tse %>% colData(tse) %>% as.data.frame()
@@ -51,6 +51,7 @@ centroids <- pcoa_filtered %>%
   )
 
 # Create the PCoA plot with facets for each region, colored by age group, and centroids
+s <- 20
 fig4 <- ggplot(pcoa_filtered, aes(x = PC1, y = PC2, color = age_group, shape = gender)) +
   geom_point(alpha = 0.4, size = 2) +               # Points for PCoA coordinates
   geom_point(data = centroids, aes(x = PC1, y = PC2, color = age_group, fill =age_group, shape = gender), 
@@ -62,15 +63,19 @@ fig4 <- ggplot(pcoa_filtered, aes(x = PC1, y = PC2, color = age_group, shape = g
        color = "Age Group", shape = "Gender") +                       # Axis and legend labels
   theme_minimal() +
   guides(fill = "none") +
-  theme(strip.text.x.top  = element_text(size=15),
+  theme(strip.text.x.top  = element_text(size=s),
     legend.position = "bottom", 
-    legend.text = element_text(size=15),
-    legend.title = element_text(size=15),
-    axis.title = element_text(size= 15),
-    axis.text = element_text(size=15),
+    legend.text = element_text(size=s),
+    legend.title = element_text(size=s),
+    axis.title = element_text(size= s),
+    axis.text = element_text(size=s),
     panel.spacing = unit(1, "lines"), # Space between panels
     strip.text = element_text(size = 10, face = "bold") # Font style for facet labels
   )
-png("RESULTS/PCoA_figure.png", width=800, height=400)
+
+
+#png("RESULTS/PCoA_figure.png", width=800, height=400)
+library(Cairo)
+CairoJPEG("RESULTS/Fig2_PCoA.png", width=800, height=420, quality=100)
 print(fig4)
 dev.off()
