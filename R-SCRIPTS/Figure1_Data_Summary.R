@@ -34,7 +34,7 @@ common_theme <- theme_classic(base_size = 14) +
 p1 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = host_age_years, fill = sex_combined)) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
-  geom_histogram(binwidth = 5, position = position_dodge(width = 4), color = "black", alpha = 0.7) +
+  geom_histogram(binwidth = 5, position = position_dodge(width = 5), color = "black", alpha = 0.7) +
   labs(
     x = "Age",
     y = "Count (N)",
@@ -47,7 +47,7 @@ p1 <- ggplot(df %>% filter(!is.na(sex_combined)),
 p2 <- ggplot(df %>% filter(!is.na(sex_combined)), 
                    aes(x = log_ARG_load, fill = sex_combined)) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
-  geom_bar(position = position_dodge(width = 0.14), color = "black", alpha = 0.7, stat = "bin", binwidth = 0.2) +
+  geom_bar(position = position_dodge(width = 0.2), color = "black", alpha = 0.7, stat = "bin", binwidth = 0.2) +
   labs(
     x = "ARG load (natural log RPKM)",
     y = "Count (N)",
@@ -68,7 +68,7 @@ df$World_Bank_Income_Group<- factor(df$World_Bank_Income_Group,
 
 p3 <- ggplot(df %>% filter(!is.na(World_Bank_Income_Group) & !is.na(sex_combined)), 
              aes(x = World_Bank_Income_Group, fill = sex_combined)) +
-  geom_bar(position = position_dodge(width = 0.7), color = "black", alpha = 0.7) +
+  geom_bar(position = position_dodge(width = 0.9), color = "black", alpha = 0.7) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
   labs(
     x = "World Bank Income Group",
@@ -82,7 +82,7 @@ p3 <- ggplot(df %>% filter(!is.na(World_Bank_Income_Group) & !is.na(sex_combined
 # Define Plot p4: Antibiotic Usage Distribution
 p4 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = Usage, fill = sex_combined)) +
-  geom_histogram(binwidth = 1, position = position_dodge(width = 0.7), color = "black", alpha = 0.7) +
+  geom_histogram(binwidth = 1, position = position_dodge(width = 1), color = "black", alpha = 0.7) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
   labs(
     x = "Antibiotic Usage (DDD)",
@@ -142,20 +142,17 @@ ggplot(data = world_data) +
   )
 
 
-
+# Create the combined plot with tags for all panels
 combined_plot <- plot_grid(
-  plot_grid(p1, p2, ncol = 2, rel_heights = c(5.5, 5)),
-  plot_grid(p3, p4, ncol = 2, rel_heights = c(5.5, 5)),
+  plot_grid(p1, p2, ncol = 2, rel_heights = c(5.5, 5), labels = c("a", "b")),
+  plot_grid(p3, p4, ncol = 2, rel_heights = c(5.5, 5), labels = c("c", "d")),
   p5,
   ncol = 1,
-  rel_heights = c(5.5, 5, 7)
+  rel_heights = c(5.5, 5, 7),
+  labels = c("", "", "e") 
 )
 
-# Add annotations with tags
-combined_plot <- cobined_plot +
-  plot_annotation(tag_levels = "a")
-
-
-print(combined_plot)
-
 ggsave("RESULTS/FIGURES/Data_Summary1.png", combined_plot, width = 12, height = 8, dpi = 300)
+
+
+
