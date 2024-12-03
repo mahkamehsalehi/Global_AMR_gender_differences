@@ -46,7 +46,7 @@ print(p)
 
 # This generates publication quality printout:
 library(Cairo)
-CairoJPEG("RESULTS/FIGURES/Fig2_PCoA.jpg", width=800, height=450, quality=100)
+CairoJPEG("RESULTS/FIGURES/Fig2_PCoA.jpg", width=1200, height=450, quality=100)
 print(p)
 dev.off()
 
