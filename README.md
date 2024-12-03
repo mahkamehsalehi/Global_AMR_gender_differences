@@ -8,6 +8,7 @@ The following table summarizes the scripts in this repository for the main and S
 | `R-SCRIPTS/Figure1_Data_Summary.R`          | Main Figure 1 (Data summaries)       |
 | `R-SCRIPTS/Fig2_PCoA.R`                     | Main Figure 2 (PCoA panel)       |
 | `R-SCRIPTS/Figure3.R`                       | Main Figure 3        |
+| `R-SCRIPTS/Figure4.R`                       | Main Figure 4        |
 | `R-SCRIPTS/Figure_income_women_violinplot.R`| Supplementary Figure 1 (Violin plot by income for women)       |
 | `R-SCRIPTS/Figure_age_arg_lmic.R`           | Supplementary Figure 2 (ARG load by age in LMICs)    |
 | `R-SCRIPTS/Figure_age_shannon_hic.R`        | Supplementary Figure 3 (Shannon diversity by age in HICs) |

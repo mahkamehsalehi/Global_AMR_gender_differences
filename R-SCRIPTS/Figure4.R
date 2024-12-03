@@ -22,7 +22,14 @@ metadata_hic <- tse_metadata %>%
   filter(!is.na(age_category) & !is.na(log_ARG_load))
 
 df <- metadata_hic
-df <- df %>% mutate(age_group = cut(host_age_years, c(0, 1, 3, 17, 35, 65, 80, 100), include.lowest=TRUE)) 
+df <- df %>% mutate(age_group = cut(host_age_years, c(0, 1, 3, 18, 35, 65, 80, 100),
+                    include.lowest=TRUE,
+		    labels=c("Infant", "Toddler", "Child",
+		            "Young Adult", "Middle Adult",
+		            "Older Adult", "Oldest Adult")))
+
+# df$age_group <- df$age_category
+
 df$reg <- factor(df$geo_loc_name_country_continent_calc)
 
 myplot <- function (df, region) {
@@ -60,7 +67,7 @@ myplot <- function (df, region) {
     #axis.text.y = element_text(size=12),
     #axis.title.x = element_text(size=12),
     #axis.title.y = element_text(size=12),        
-    strip.text = element_text(size = 10, face = "bold", angle = 45),
+    strip.text = element_text(size = 10, face = "bold", angle = 0),
     panel.spacing = unit(0.5, "lines")
   ) 
 
@@ -77,9 +84,10 @@ p <- plot_grid(ps[[1]] + theme(legend.position="none"),
 	       )
 print(p)
 
-
-jpeg("RESULTS/FIGURES/Fig4.jpg", width=500, height=700, quality=100)
+library(Cairo)
+CairoJPEG("RESULTS/FIGURES/Fig4.jpg", width=700, height=700, quality=100)
 print(p)
 dev.off()
 
-
+# Saved text for later
+# Trend lines represent LOESS (locally estimated scatterplot smoothing) regression with shaded bands for 95% confidence intervals. 
