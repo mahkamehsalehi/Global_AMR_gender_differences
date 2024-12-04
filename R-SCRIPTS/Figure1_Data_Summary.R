@@ -8,6 +8,10 @@ library(viridis)
 library(tidyverse)
 library(ggpubr)
 library(cowplot)
+library(mia)
+library(miaViz)
+library(SEtools)
+
 
 # Data Loading and Preprocessing
 tse <- readRDS("DATA/TSE.rds")
@@ -19,15 +23,16 @@ df$sex_combined <- recode(df$sex_combined, "male" = "Men", "female" = "Women")
 df$sex_combined <- factor(df$sex_combined, levels = c("Women", "Men"))
 
 # Define custom plot theme
-common_theme <- theme_classic(base_size = 14) +
+s <- 14 # scale for the figure size definitions
+common_theme <- theme_classic(base_size = s) +
   theme(
-    plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12),
+    plot.title = element_text(face = "bold", size = s, hjust = 0.5),
+    axis.text = element_text(size = s),
+    axis.title = element_text(size = s),
     legend.position = "none",
     axis.line = element_line(color = "black"),
     strip.background = element_rect(fill = "white", color = "black"),
-    strip.text = element_text(size = 10, face = "bold"),
+    strip.text = element_text(size = s, face = "bold"),
   )
 
 # Define Plot p1: Host Age Distribution by Gender
@@ -36,7 +41,7 @@ p1 <- ggplot(df %>% filter(!is.na(sex_combined)),
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
   geom_histogram(binwidth = 5, position = position_dodge(width = 5), color = "black", alpha = 0.7) +
   labs(
-    x = "Age",
+    x = "Age (y)",
     y = "Count (N)",
     fill = "Gender"
   ) +
@@ -44,15 +49,19 @@ p1 <- ggplot(df %>% filter(!is.na(sex_combined)),
 
 
 # Define Plot p2: Antibiotic Resistance Load Distribution
+library(scales)
 p2 <- ggplot(df %>% filter(!is.na(sex_combined)), 
-                   aes(x = log_ARG_load, fill = sex_combined)) +
+                   aes(x = ARG_load, fill = sex_combined)) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
-  geom_bar(position = position_dodge(width = 0.2), color = "black", alpha = 0.7, stat = "bin", binwidth = 0.2) +
+  geom_bar(position = position_dodge(), color = "black", alpha = 0.7, stat = "bin", binwidth = 0.2) +
   labs(
-    x = "ARG load (natural log RPKM)",
+    x = "ARG load (RPKM)",
     y = "Count (N)",
     fill = "Gender"
   ) +
+  scale_x_continuous(transf="log10",
+                     breaks=10^(2:5),
+                     labels=trans_format("log10", math_format(10^.x))) +
   common_theme
 
 # Define Plot p3: World Bank Income Group Distribution
@@ -65,24 +74,24 @@ df$World_Bank_Income_Group<- factor(df$World_Bank_Income_Group,
                                levels = c("Low", "Lower middle", "Upper middle", "High"), 
                                ordered = TRUE)
 
-
 p3 <- ggplot(df %>% filter(!is.na(World_Bank_Income_Group) & !is.na(sex_combined)), 
              aes(x = World_Bank_Income_Group, fill = sex_combined)) +
-  geom_bar(position = position_dodge(width = 0.9), color = "black", alpha = 0.7) +
+  geom_bar(position = position_dodge(), color = "black", alpha = 0.7) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
   labs(
-    x = "World Bank Income Group",
+    x = "Income Group (World Bank)",
     y = "Count (N)",
     fill = "Gender"
   ) +
-  common_theme
+  scale_x_discrete(labels = c("Low", "Lower\nmiddle", "Upper\nmiddle", "High")) + 
+  common_theme 
 
 
 
 # Define Plot p4: Antibiotic Usage Distribution
 p4 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = Usage, fill = sex_combined)) +
-  geom_histogram(binwidth = 1, position = position_dodge(width = 1), color = "black", alpha = 0.7) +
+  geom_histogram(binwidth = 1, position = position_dodge(), color = "black", alpha = 0.7) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
   labs(
     x = "Antibiotic Usage (DDD)",
@@ -111,8 +120,7 @@ df_summary <- df_filtered %>%
                               destination = "iso3c"))
 
 # Merge with World Map Data
-world_data <- world %>% 
-  left_join(df_summary, by = c("iso_a3"))
+world_data <- world %>% dplyr::left_join(df_summary, by = c("iso_a3"))
 
 # Define Custom Breaks for Fill Scale
 breaks_seq_custom <- c(0, 1000, 2000, 3000)
@@ -125,7 +133,7 @@ ggplot(data = world_data) +
     low = "lightblue",
     high = "darkblue",
     na.value = "grey90",
-    name = "Number of Samples"
+    name = "Samples (N)"
   ) +
   common_theme +
   theme(
@@ -144,15 +152,15 @@ ggplot(data = world_data) +
 
 # Create the combined plot with tags for all panels
 combined_plot <- plot_grid(
-  plot_grid(p1, p2, ncol = 2, rel_heights = c(5.5, 5), labels = c("a", "b")),
-  plot_grid(p3, p4, ncol = 2, rel_heights = c(5.5, 5), labels = c("c", "d")),
-  p5,
+  plot_grid(p1, p2, p3, p4, ncol = 2, labels="auto"),
+  p5 + annotate("text", x=-180, y=100, label="e", size=5) + labs(x="", y=""), 
   ncol = 1,
-  rel_heights = c(5.5, 5, 7),
-  labels = c("", "", "e") 
+  rel_heights = c(6, 6)
 )
 
-ggsave("RESULTS/FIGURES/Data_Summary1.png", combined_plot, width = 12, height = 8, dpi = 300)
-
-
+# This generates publication quality printout:
+library(Cairo)
+CairoJPEG("RESULTS/FIGURES/Fig1_datasummary.jpg", width=600, height=800, quality=100)
+print(combined_plot)
+dev.off()
 
