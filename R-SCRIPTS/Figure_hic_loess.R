@@ -18,7 +18,9 @@ tse_metadata <- as.data.frame(colData(TSE))
 
 metadata_hic <- tse_metadata %>%
   filter(income_group == "HIC") %>%
-  filter(!is.na(age_category_new) & !is.na(ARG_load))
+  filter(geo_loc_name_country_continent_calc %in% c("Europe", "North America")) %>%  
+  filter(!is.na(host_age_years) & !is.na(ARG_load))
+  
 
 
 theme_set(theme_bw(20))
@@ -27,11 +29,12 @@ p <- ggplot(metadata_hic, aes(x=host_age_years, y=ARG_load,
        # geom_point(size=0.5, alpha=0.5) +
        geom_smooth() +
        scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-       scale_y_log10(breaks=seq(400, 700, 100), labels=seq(400, 700, 100)) +
+       #scale_y_log10(breaks=seq(400, 700, 100), labels=seq(400, 700, 100)) +
        labs(x="Age (y)", y="ARG load (RPKM)", color="", fill="", title="HIC") +
        #coord_cartesian(ylim=c(400, 1400)) +
-       coord_cartesian(ylim=c(400, 700)) +       
-       theme(legend.position=c(0.12, 0.88))
+       # coord_cartesian(ylim=c(400, 700)) +       
+       # theme(legend.position=c(0.12, 0.88)) +
+       facet_grid(. ~ geo_loc_name_country_continent_calc)
        
 
 print(p)
