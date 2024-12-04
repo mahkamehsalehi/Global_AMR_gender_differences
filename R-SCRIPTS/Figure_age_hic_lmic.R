@@ -109,7 +109,7 @@ combined_plot <- (age_arg_boxplot_hic + labs(title="HIC"))+
 
 # Save the combined plot
 library(Cairo)
-CairoJPEG("../RESULTS/FIGURES/Combined_ARG_Load.jpg", width = 940, height = 700, quality = 400)
+CairoJPEG("../RESULTS/FIGURES/Combined_ARG_Load.jpg", width = 940, height = 750, quality = 400)
 print(combined_plot)
 dev.off()
 
