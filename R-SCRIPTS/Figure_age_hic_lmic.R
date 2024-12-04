@@ -96,12 +96,11 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = ARG_load, fill
 
 income_level <- c("HICs", "LMICs")
 
-
 library(patchwork)
 
 # Combine the plots in two rows
-combined_plot <- age_arg_boxplot_hic +
-  age_arg_boxplot_lmic +
+combined_plot <- (age_arg_boxplot_hic + labs(title="HIC"))+
+                 (age_arg_boxplot_lmic + labs(title="LMIC"))+
   plot_layout(ncol = 1, heights = c(1, 1)) + 
   plot_annotation(
     theme = theme(plot.title = element_text(),
