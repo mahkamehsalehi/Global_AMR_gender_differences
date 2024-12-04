@@ -56,11 +56,11 @@ age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = ARG_load, fill =
     hide.ns = FALSE, size = 6 
   ) +
   scale_y_log10(labels = scales::comma) + 
-  theme_minimal(20) +
+  theme_minimal(16) +
   theme(
     axis.line = element_line(color = "black"),
     axis.text.x = element_blank(),
-    strip.text = element_text(size = 18, angle = 90),
+    strip.text = element_text(size = 12, angle = 0),
     panel.spacing = unit(0.5, "lines")
   )
 
@@ -75,7 +75,7 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = ARG_load, fill
   facet_wrap(~age_category_new, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(x = "Gender", y = "ARG load (RPKM)") +
-  theme_minimal(20) +
+  theme_minimal(16) +
   stat_compare_means(
     comparisons = list(
       c("Women", "Men")
@@ -90,7 +90,7 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = ARG_load, fill
   theme(
     axis.line = element_line(color = "black"),
     axis.text.x = element_blank(),
-    strip.text = element_text(size = 18, angle = 90),
+    strip.text = element_text(size = 12, angle = 0),
     panel.spacing = unit(0.5, "lines")
   )
 
@@ -104,13 +104,13 @@ combined_plot <- age_arg_boxplot_hic +
   age_arg_boxplot_lmic +
   plot_layout(ncol = 1, heights = c(1, 1)) + 
   plot_annotation(
-    theme = theme(plot.title = element_text(size = 22),
-                  plot.subtitle = element_text(size = 18))
+    theme = theme(plot.title = element_text(),
+                  plot.subtitle = element_text())
   )
 
 # Save the combined plot
 library(Cairo)
-CairoJPEG("../RESULTS/FIGURES/Combined_ARG_Load.jpg", width = 1000, height = 1200, quality = 400)
+CairoJPEG("../RESULTS/FIGURES/Combined_ARG_Load.jpg", width = 940, height = 700, quality = 400)
 print(combined_plot)
 dev.off()
 
