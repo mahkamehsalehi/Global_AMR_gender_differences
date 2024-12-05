@@ -1,0 +1,162 @@
+library(vegan)
+library(ggpubr)
+library(ggplot2)
+library(ggpubr)
+library(patchwork)
+library(tidyverse)
+library(cowplot)
+library(rstatix)
+library(SummarizedExperiment)
+library(dplyr)
+
+# -----------------------------
+# Data Loading and Preprocessing
+# -----------------------------
+
+TSE <- readRDS("DATA/TSE_filtered.rds")
+
+tse_metadata <- as.data.frame(colData(TSE))
+
+metadata_hic <- tse_metadata %>%
+  filter(income_group == "HIC") %>%
+  filter(!is.na(age_category_new) & !is.na(shannon_diversity))
+
+df <- metadata_hic
+df$age_group <- df$age_category_new
+
+
+df$reg <- factor(df$geo_loc_name_country_continent_calc)
+
+# myplot <- function (df, region) {
+# 
+#   d <- subset(df, reg == region)
+# 
+#   p <- ggplot(d,
+#     aes(x = gender, y = log_ARG_load, fill = gender)) +
+#     geom_boxplot(
+#       position = position_dodge(width = 0.8),
+#       outlier.shape = NA,
+#       width = 0.6,
+#       alpha = 1,
+#       show.legend = TRUE
+#     ) +
+#   facet_wrap(~age_group, scales = "fixed", nrow = 1) +
+#   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
+#   labs(x = "Age groups", y = "ARG load (log RPKM)", title=region) +
+#   theme_minimal() +
+#   stat_compare_means(
+#     comparisons = list(
+#       c("Women", "Men")
+#     ),
+#     aes(label = ..p.signif.., size=7),
+#     method = "wilcox.test",
+#     p.adjust.method = "BH",
+#     hide.ns = FALSE
+#   ) +
+#   theme_minimal(16) +
+#   theme(
+#     axis.line = element_line(color = "black"),
+#     # axis.text.x = element_text(size=12),
+#     #title.text = element_text(size=12),
+#     axis.text.x = element_blank(),        
+#     #axis.text.y = element_text(size=12),
+#     #axis.title.x = element_text(size=12),
+#     #axis.title.y = element_text(size=12),        
+#     strip.text = element_text(size = 10, face = "bold", angle = 0),
+#     panel.spacing = unit(0.5, "lines")
+#   ) 
+# 
+# }
+# 
+
+
+###
+myplot <- function(df, region, ylim_list, sig_y_offset = 0.1) {
+  d <- subset(df, reg == region)
+  
+  # Get the y-limits for the region
+  ylim_max <- ylim_list[[region]]
+  
+  p <- ggplot(d, 
+              aes(x = gender, y = shannon_diversity, fill = gender)) + 
+    geom_boxplot(
+      position = position_dodge(width = 0.8),
+      outlier.shape = NA,
+      width = 0.6,
+      alpha = 1,
+      show.legend = TRUE
+    ) + 
+    facet_wrap(~age_group, scales = "fixed", nrow = 1) +
+    scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
+    labs(x = "Age groups", y = "Shannon Diversity", title = region) +
+    coord_cartesian(ylim = c(0, ylim_max)) + 
+    stat_compare_means(
+      comparisons = list(c("Women", "Men")),
+      aes(label = ..p.signif.., size = 7),
+      method = "wilcox.test",
+      p.adjust.method = "BH",
+      hide.ns = FALSE,
+      label.y = 3
+    ) +
+    theme_minimal(16) +
+    theme(
+      axis.line = element_line(color = "black"),
+      axis.text.x = element_blank(),
+      strip.text = element_text(size = 10, face = "bold", angle = 0),
+      panel.spacing = unit(0.5, "lines")
+    )
+  
+  return(p)
+}
+
+
+
+
+##
+# y-limits for each region
+ylim_list <- list(
+  "Europe" = 4,
+  "North America" = 4
+)
+
+# Generate plots for each region
+regs <- c("Europe", "North America")
+ps <- lapply(regs, function(region) {
+  myplot(df, region, ylim_list = ylim_list)
+})
+
+# Extract legend from the first plot
+leg <- get_legend(ps[[1]] + theme(legend.direction = "horizontal", legend.title = element_blank()))
+
+# Combine plots and legend
+p <- plot_grid(
+  ps[[1]] + theme(legend.position = "none"),
+  ps[[2]] + theme(legend.position = "none"),
+  leg,
+  rel_heights = c(0.45, 0.45, 0.1),
+  nrow = 3
+)
+
+print(p)
+
+
+###
+# 
+# regs <- c("Europe", "North America")
+# ps <- lapply(regs, function (region) {myplot(df, region)})
+# leg <- get_legend(ps[[1]] + theme(legend.direction="horizontal", legend.title=element_blank()))
+# p <- plot_grid(ps[[1]] + theme(legend.position="none"),
+#                ps[[2]] + theme(legend.position="none"),
+# 	       leg,
+# 	       rel_heights=c(0.45, 0.45, 0.1),
+# 	       nrow=3
+# 	       )
+# print(p)
+
+library(Cairo)
+CairoJPEG("RESULTS/FIGURES/FigS5.jpg", width=800, height=700, quality=100)
+print(p)
+dev.off()
+
+# Saved text for later
+# Trend lines represent LOESS (locally estimated scatterplot smoothing) regression with shaded bands for 95% confidence intervals. 
