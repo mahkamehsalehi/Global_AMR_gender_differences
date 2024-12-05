@@ -66,7 +66,7 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = ARG_load, fill
     size = 6,
     label.y = 4
   ) +
-  scale_y_continuous(transf="log10",
+  scale_y_continuous(transf="log10", 
                      breaks=10^(2:5),
                      labels=trans_format("log10", math_format(10^.x)))
   theme(
