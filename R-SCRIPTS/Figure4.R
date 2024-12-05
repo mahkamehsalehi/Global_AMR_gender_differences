@@ -23,73 +23,28 @@ metadata_hic <- tse_metadata %>%
 
 df <- metadata_hic
 df$age_group <- df$age_category_new
-
-
 df$reg <- factor(df$geo_loc_name_country_continent_calc)
 
-# myplot <- function (df, region) {
-# 
-#   d <- subset(df, reg == region)
-# 
-#   p <- ggplot(d,
-#     aes(x = gender, y = log_ARG_load, fill = gender)) +
-#     geom_boxplot(
-#       position = position_dodge(width = 0.8),
-#       outlier.shape = NA,
-#       width = 0.6,
-#       alpha = 1,
-#       show.legend = TRUE
-#     ) +
-#   facet_wrap(~age_group, scales = "fixed", nrow = 1) +
-#   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-#   labs(x = "Age groups", y = "ARG load (log RPKM)", title=region) +
-#   theme_minimal() +
-#   stat_compare_means(
-#     comparisons = list(
-#       c("Women", "Men")
-#     ),
-#     aes(label = ..p.signif.., size=7),
-#     method = "wilcox.test",
-#     p.adjust.method = "BH",
-#     hide.ns = FALSE
-#   ) +
-#   theme_minimal(16) +
-#   theme(
-#     axis.line = element_line(color = "black"),
-#     # axis.text.x = element_text(size=12),
-#     #title.text = element_text(size=12),
-#     axis.text.x = element_blank(),        
-#     #axis.text.y = element_text(size=12),
-#     #axis.title.x = element_text(size=12),
-#     #axis.title.y = element_text(size=12),        
-#     strip.text = element_text(size = 10, face = "bold", angle = 0),
-#     panel.spacing = unit(0.5, "lines")
-#   ) 
-# 
-# }
-# 
-
-
 ###
-myplot <- function(df, region, ylim_list, sig_y_offset = 0.5) {
+myplot <- function(df, region, ylim_list, sig_y_offset = -3.2) {
   d <- subset(df, reg == region)
   
   # Get the y-limits for the region
   ylim_max <- ylim_list[[region]]
   
   p <- ggplot(d, 
-              aes(x = gender, y = log_ARG_load, fill = gender)) + 
+              aes(x = gender, y = ARG_load, fill = gender)) + 
     geom_boxplot(
       position = position_dodge(width = 0.8),
       outlier.shape = NA,
       width = 0.6,
       alpha = 1,
       show.legend = TRUE
-    ) + 
+    ) +
     facet_wrap(~age_group, scales = "fixed", nrow = 1) +
     scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-    labs(x = "Age groups", y = "ARG load (log RPKM)", title = region) +
-    coord_cartesian(ylim = c(4.2, ylim_max)) + # Set y-limits here
+    labs(x = "Age groups", y = "ARG load (RPKM)", title = region) +
+    # coord_cartesian(ylim = c(4.2, ylim_max)) + # Set y-limits here
     stat_compare_means(
       comparisons = list(c("Women", "Men")),
       aes(label = ..p.signif.., size = 7),
@@ -98,6 +53,7 @@ myplot <- function(df, region, ylim_list, sig_y_offset = 0.5) {
       hide.ns = FALSE,
       label.y = ylim_max - sig_y_offset  # Offset significance labels
     ) +
+    scale_y_continuous(trans="log2", breaks=c(100, 1000, 10000)) +             
     theme_minimal(16) +
     theme(
       axis.line = element_line(color = "black"),
@@ -138,24 +94,7 @@ p <- plot_grid(
 
 print(p)
 
-
-###
-# 
-# regs <- c("Europe", "North America")
-# ps <- lapply(regs, function (region) {myplot(df, region)})
-# leg <- get_legend(ps[[1]] + theme(legend.direction="horizontal", legend.title=element_blank()))
-# p <- plot_grid(ps[[1]] + theme(legend.position="none"),
-#                ps[[2]] + theme(legend.position="none"),
-# 	       leg,
-# 	       rel_heights=c(0.45, 0.45, 0.1),
-# 	       nrow=3
-# 	       )
-# print(p)
-
- library(Cairo)
- CairoJPEG("RESULTS/FIGURES/Fig4.jpg", width=800, height=700, quality=100)
- print(p)
- dev.off()
-
-# Saved text for later
-# Trend lines represent LOESS (locally estimated scatterplot smoothing) regression with shaded bands for 95% confidence intervals. 
+library(Cairo)
+CairoJPEG("RESULTS/FIGURES/Fig4.jpg", width=800, height=700, quality=100)
+print(p)
+dev.off()
