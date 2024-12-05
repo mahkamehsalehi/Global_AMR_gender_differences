@@ -1,3 +1,4 @@
+library(scales)
 library(vegan)
 library(ggpubr)
 library(ggplot2)
@@ -8,33 +9,8 @@ library(cowplot)
 library(rstatix)
 library(SummarizedExperiment)
 
-# -----------------------------
-# Data Loading and Preprocessing
-# -----------------------------
-
-TSE <- readRDS("DATA/TSE_filtered.rds")
-
-tse_metadata <- as.data.frame(colData(TSE))
-
-metadata_hic <- tse_metadata %>%
-  filter(income_group == "HIC") %>%
-  filter(!is.na(age_category_new) & !is.na(ARG_load))
-
-metadata_lmic <- tse_metadata %>%
-  filter(income_group == "LMIC") %>%
-  filter(!is.na(age_category_new) & !is.na(ARG_load))
-
-comparisons <- list(
-  c("Infant", "Toddler"),
-  c("Toddler", "Children"),
-  c("Children", "Teenager"),
-  c("Teenager", "Young Adult"),
-  c("Young Adult", "Middle-Aged Adult"),
-  c("Middle-Aged Adult", "Older Adult"),
-  c("Older Adult", "Oldest Adult")
-)
-
-age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_diversity, fill = gender)) +
+# Add legend to one of the plots
+age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = ARG_load, fill = gender)) +
   geom_boxplot(
     position = position_dodge(width = 0.8),
     outlier.shape = NA,
@@ -43,7 +19,7 @@ age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_diversit
   ) +
   facet_wrap(~age_category_new, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Gender", y = "ARG diversity (Shannon index)") +
+  labs(x = "Gender", y = "ARG load (RPKM)") +
   stat_compare_means(
     comparisons = list(
       c("Women", "Men")
@@ -53,8 +29,11 @@ age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_diversit
     p.adjust.method = "BH",
     hide.ns = FALSE,
     size = 6,
-    label.y = 3
+    label.y = 4
   ) +
+  scale_y_continuous(transf="log10",
+                     breaks=10^(2:5),
+                     labels=trans_format("log10", math_format(10^.x))) +
   theme_minimal(16) +
   theme(
     axis.line = element_line(color = "black"),
@@ -64,7 +43,7 @@ age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_diversit
     legend.position = "bottom"
   )
 
-age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = shannon_diversity, fill = gender)) +
+age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = ARG_load, fill = gender)) +
   geom_boxplot(
     position = position_dodge(width = 0.8),
     outlier.shape = NA,
@@ -74,7 +53,7 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = shannon_divers
   ) +
   facet_wrap(~age_category_new, scales = "fixed", nrow = 1) +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  labs(x = "Gender", y = "ARG diversity (Shannon index)") +
+  labs(x = "Gender", y = "ARG load (RPKM)") +
   theme_minimal(16) +
   stat_compare_means(
     comparisons = list(
@@ -85,8 +64,11 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = shannon_divers
     p.adjust.method = "BH",
     hide.ns = FALSE,
     size = 6,
-    label.y = 3
+    label.y = 4
   ) +
+  scale_y_continuous(transf="log10",
+                     breaks=10^(2:5),
+                     labels=trans_format("log10", math_format(10^.x)))
   theme(
     axis.line = element_line(color = "black"),
     axis.text.x = element_blank(),
@@ -107,6 +89,6 @@ combined_plot <- (age_arg_boxplot_hic + labs(title = "HIC")) +
   )
 
 # Save the combined plot
-CairoJPEG("RESULTS/FIGURES/Combined_ARG_diversity.jpg", width = 940, height = 750, quality = 400)
+CairoJPEG("RESULTS/FIGURES/Combined_ARG_load.jpg", width = 940, height = 750, quality = 400)
 print(combined_plot)
 dev.off()

@@ -6,6 +6,7 @@ library(patchwork)
 library(tidyverse)
 library(cowplot)
 library(mia)
+library(scales)
 
 TSE <- readRDS("DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
@@ -19,8 +20,7 @@ filtered_metadata <- tse_metadata %>%
 filtered_metadata <- filtered_metadata %>%
   drop_na(log_ARG_load, income_group)
 
-filtered_metadata_no_outliers <- filtered_metadata %>%
-  filter(ARG_load <= 3000)
+filtered_metadata_no_outliers <- filtered_metadata
 
 filtered_metadata_female_no_outliers <- filtered_metadata_no_outliers %>%
   filter(gender == "Women")
@@ -35,13 +35,13 @@ filtered_metadata_female_no_outliers <- filtered_metadata_no_outliers %>%
 gender_colors <- c("Women" = "#F8766D", "Men" = "#619CFF")
 
 # Ensure consistent themes and uniform styling
-custom_theme <- theme_minimal() +
+custom_theme <- theme_minimal(18) +
   theme(
     axis.line = element_line(color = "black"),
     strip.background = element_rect(color = "black", size = 1),
     plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-    axis.title = element_text(size = 12),
-    axis.text = element_text(size = 10) ,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14) ,
     legend.position = "none"
   )
 
@@ -56,11 +56,14 @@ income_arg_violin_female <- ggplot(filtered_metadata_female_no_outliers,
                      label = "p.format", 
                      method = "wilcox.test", 
                      p.adjust.method = "BH", 
-                     hide.ns = FALSE) +
+                     hide.ns = FALSE,
+                     size = 5) +
   scale_fill_manual(values = c("HIC" = "#F8766D", "LMIC" = "#F8766D")) +
   labs(x = "Income group", 
-       y = "ARG load (natural log RPKM)") +
-  coord_cartesian(ylim = c(0, 3200)) +
+       y = "ARG load (RPKM)") +
+  scale_y_continuous(transf="log10",
+                     breaks=10^(2:5),
+                     labels=trans_format("log10", math_format(10^.x))) +
   custom_theme
 
 # Violin plot for Shannon diversity (Women)
@@ -74,7 +77,8 @@ income_shannon_violin_female <- ggplot(filtered_metadata_female_no_outliers,
                      label = "p.format", 
                      method = "wilcox.test", 
                      p.adjust.method = "BH", 
-                     hide.ns = FALSE) +
+                     hide.ns = FALSE,
+                     size = 5) +
   scale_fill_manual(values = c("HIC" = "#F8766D", "LMIC" = "#F8766D")) +
   labs(x = "Income group", 
        y = "ARG diversity") +
