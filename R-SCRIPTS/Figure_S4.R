@@ -9,6 +9,29 @@ library(cowplot)
 library(rstatix)
 library(SummarizedExperiment)
 
+
+TSE <- readRDS("DATA/TSE_filtered.rds")
+
+tse_metadata <- as.data.frame(colData(TSE))
+
+metadata_hic <- tse_metadata %>%
+  filter(income_group == "HIC") %>%
+  filter(!is.na(age_category_new) & !is.na(ARG_load))
+
+metadata_lmic <- tse_metadata %>%
+  filter(income_group == "LMIC") %>%
+  filter(!is.na(age_category_new) & !is.na(ARG_load))
+
+comparisons <- list(
+  c("Infant", "Toddler"),
+  c("Toddler", "Children"),
+  c("Children", "Teenager"),
+  c("Teenager", "Young Adult"),
+  c("Young Adult", "Middle-Aged Adult"),
+  c("Middle-Aged Adult", "Older Adult"),
+  c("Older Adult", "Oldest Adult")
+)
+
 # Add legend to one of the plots
 age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = ARG_load, fill = gender)) +
   geom_boxplot(
@@ -68,7 +91,7 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = ARG_load, fill
   ) +
   scale_y_continuous(transf="log10", 
                      breaks=10^(2:5),
-                     labels=trans_format("log10", math_format(10^.x)))
+                     labels=trans_format("log10", math_format(10^.x))) +
   theme(
     axis.line = element_line(color = "black"),
     axis.text.x = element_blank(),

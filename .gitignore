@@ -6,5 +6,5 @@ tmp*
 .Ruserdata
 .DS_Store
 .Rproj
-DATA/PROCESSED
+#DATA/PROCESSED
 DATA/RAW
