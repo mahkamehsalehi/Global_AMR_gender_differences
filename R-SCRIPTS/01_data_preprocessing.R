@@ -3,6 +3,7 @@
 # TODO # Run the ordinations from lines 228 onwards.
 
 rm(list  = ls())
+
 require(tidyverse)
 require(dplyr)
 require(readr)
@@ -34,6 +35,10 @@ metadata                <- fread("DATA/PROCESSED/Sra_metadata_processed.csv",
 
 # Create gender and age columns for metadata
 source("R-SCRIPTS/metadata_processing_sex.R")
+
+# Remove jattr from metadata before merging
+metadata <- metadata %>%
+  select(-matches("^jattr_parsed_jattr"), -jattr)
 
 # Merge with other metadata
 tmp <- merge(df_selected, metadata)

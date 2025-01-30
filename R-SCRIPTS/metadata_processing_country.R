@@ -2,15 +2,22 @@ library(dplyr)
 library(lme4)
 library(nlme)
 library(readr)
-# Read tse
-# TSE <- readRDS("TSE.rds")
-df <- TSE %>% colData() %>% as.data.frame() 
+
+# Read TSE
+# TSE <- readRDS("DATA/TSE.rds")
+
+# Read TSE metadata
+df <- TSE %>% colData() %>% as.data.frame()
+
+# Calculate log transformed ARG load
 df$log10_ARG_load <- log10(df$ARG_load)
 
+# Load country level-data
 country_level_data <- read_csv("DATA/data.csv") %>%
   .[, -c(20:24)] %>%
-  rename(geo_loc_name_country_calc = Country)
+  dplyr::rename(geo_loc_name_country_calc = Country)
 
+# Standardize country names
 country_level_data <- country_level_data %>%
   mutate(geo_loc_name_country_calc = recode(geo_loc_name_country_calc,
                                             "Kazakistan" = "Kazakhstan",
@@ -157,30 +164,34 @@ country_level_data <- country_level_data %>%
 # 
 # 
 
+# Remove NA countries
+country_level_data <- country_level_data %>%
+  filter(!is.na(geo_loc_name_country_calc))
 
-# Find the geo_loc_name_country_calc values in country_level_data but not in df
+# Identify countries present in df but missing in country_level_data
 missing_countries <- df %>%
   dplyr::select(geo_loc_name_country_calc) %>%
   anti_join(country_level_data %>% dplyr::select(geo_loc_name_country_calc), by = "geo_loc_name_country_calc")
 
-# Print or inspect the result
-print(missing_countries$geo_loc_name_country_calc %>% sort %>% unique)
-
-# Find the geo_loc_name_country_calc values in country_level_data but not in df
+# Identify countries present in country_level _data but missing in df
 missing_countries_2 <- country_level_data %>%
   dplyr::select(geo_loc_name_country_calc) %>%
   anti_join(df %>% dplyr::select(geo_loc_name_country_calc), by = "geo_loc_name_country_calc")
 
-
-# Print or inspect the result
+# Print missing countries
 print(missing_countries$geo_loc_name_country_calc %>% sort %>% unique)
 print(missing_countries_2$geo_loc_name_country_calc %>% sort %>% unique)
 
+# Merge data with country-level metadata
 merged_data <- df %>%
   dplyr::left_join(country_level_data %>%
-              unique(), by = "geo_loc_name_country_calc") %>%
+                     unique(), by = "geo_loc_name_country_calc") %>%
   mutate(log10_ARG_load = log10(ARG_load)) # %>%
- # filter(geo_loc_name_country_calc != "" & geo_loc_name_country_calc != "uncalculated")
+# filter(geo_loc_name_country_calc != "" & geo_loc_name_country_calc != "uncalculated")
+
+# Ensure unique row names before setting them
+merged_data <- merged_data %>%
+  distinct(acc, .keep_all = TRUE)
 
 # Create the mapping of countries to regions
 country_to_region <- c(
@@ -198,6 +209,16 @@ country_to_region <- c(
   "Taiwan" = "East Asia & Pacific",
   "Tanzania" = "Sub-Saharan Africa"
 )
+
+# Keep only one Region column
+#merged_data <- merged_data %>%
+#  mutate(Region = Region.x) %>%
+#  select(-Region.x, -Region.y)
+
+# Keep only one Usage column
+#merged_data <- merged_data %>%
+#  mutate(Usage = Usage.x) %>%
+#  select(-Usage.x, -Usage.y)
 
 # Assign regions to the corresponding countries in merged_data
 merged_data <- merged_data %>%
