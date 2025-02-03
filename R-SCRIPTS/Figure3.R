@@ -20,7 +20,6 @@ filtered_metadata <- tse_metadata %>%
   ) %>%
   drop_na(log_ARG_load, income_group)
 
-
 filtered_metadata_female_no_outliers <- filtered_metadata %>%
   filter(gender == "Women")
 
@@ -34,7 +33,7 @@ custom_theme <- theme_minimal(24) +
     strip.background = element_rect(color = "black", size = 1),
     plot.title = element_text(hjust = 0.5),
     axis.title = element_text(),
-    axis.text = element_text() ,
+    axis.text = element_text(),
     legend.position = "none"
   )
 
@@ -45,39 +44,41 @@ calc_effect_size <- function(data, x, y) {
   return(r)
 }
 
-# Calculate sample sizes and effect sizes per income_group
+# Calculate sample sizes and effect sizes per income_group for both ARG load and ARG diversity
 annotations <- filtered_metadata %>%
   group_by(income_group) %>%
   summarise(
     n_Women = sum(gender == "Women"),
     n_Men = sum(gender == "Men"),
-    effect_size = calc_effect_size(cur_data(), "gender", "ARG_load"),
+    effect_size_ARG_load = calc_effect_size(cur_data(), "gender", "ARG_load"),
+    effect_size_shannon_diversity = calc_effect_size(cur_data(), "gender", "shannon_diversity"),
     .groups = 'drop'
   )
 
-# Create a formatted annotation table
+# Create a formatted annotation table including both measures
 annotation_table <- ggtexttable(
   annotations %>%
     mutate(
-      Effect_Size = round(effect_size, 3)
+      `Effect Size (ARG load)` = round(effect_size_ARG_load, 3),
+      `Effect Size (ARG diversity)` = round(effect_size_shannon_diversity, 3)
     ) %>%
     select(
       `Income Group` = income_group,
       `n Women` = n_Women,
       `n Men` = n_Men,
-      `Effect Size (r)` = Effect_Size
+      `Effect Size (ARG load)`,
+      `Effect Size (ARG diversity)`
     ),
   rows = NULL,
   theme = ttheme(
     "light",
     base_size = 16,
-    padding = unit(c(5, 15), "pt")
+    padding = unit(c(5, 30), "pt")
   )
 ) +
   theme(
     plot.margin = unit(c(1, 1, 1, 1), "cm")
   )
-
 
 # Create ARG Load Violin Plot
 income_arg_violinplot <- ggviolin(
