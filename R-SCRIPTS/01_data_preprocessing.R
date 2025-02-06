@@ -147,7 +147,6 @@ ARG_load_rpk <- colSums(rpk_values, na.rm = TRUE)
 # the column names in rpk_values (after the transposition)
 filtered_metadata$ARG_load_rpk <- ARG_load_rpk[match(filtered_metadata$acc, names(ARG_load_rpk))]
 
-# Optionally, you can log-transform the ARG load (e.g., for model fitting)
 filtered_metadata$log_ARG_load_rpk <- log(filtered_metadata$ARG_load_rpk + 1)
 
 ############################################################################
