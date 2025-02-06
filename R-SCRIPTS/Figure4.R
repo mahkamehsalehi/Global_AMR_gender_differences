@@ -33,18 +33,16 @@ myplot <- function(df, region, ylim_list, sig_y_offset = -3.2) {
   ylim_max <- ylim_list[[region]]
   
   p <- ggplot(d, aes(x = gender, y = ARG_load, fill = gender)) + 
-    # Violin plot (distribution)
     geom_violin(
       position = position_dodge(width = 0.8),
       alpha = 1, 
       trim = FALSE
     ) +
-    # Boxplot inside the violin (white fill)
     geom_boxplot(
       position = position_dodge(width = 0.8),
       outlier.shape = NA,
-      width = 0.2,  # Make the boxplot narrow to fit inside violin
-      fill = "white",  # Ensures visibility inside violin
+      width = 0.2,
+      fill = "white",
       alpha = 1,
       show.legend = FALSE
     ) +
