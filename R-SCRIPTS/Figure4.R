@@ -32,19 +32,25 @@ myplot <- function(df, region, ylim_list, sig_y_offset = -3.2) {
   # Get the y-limits for the region
   ylim_max <- ylim_list[[region]]
   
-  p <- ggplot(d, 
-              aes(x = gender, y = ARG_load, fill = gender)) + 
+  p <- ggplot(d, aes(x = gender, y = ARG_load, fill = gender)) + 
+    # Violin plot (distribution)
+    geom_violin(
+      position = position_dodge(width = 0.8),
+      alpha = 1, 
+      trim = FALSE
+    ) +
+    # Boxplot inside the violin (white fill)
     geom_boxplot(
       position = position_dodge(width = 0.8),
       outlier.shape = NA,
-      width = 0.6,
+      width = 0.2,  # Make the boxplot narrow to fit inside violin
+      fill = "white",  # Ensures visibility inside violin
       alpha = 1,
-      show.legend = TRUE
+      show.legend = FALSE
     ) +
     facet_wrap(~age_group, scales = "fixed", nrow = 1) +
     scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
     labs(x = "Age groups", y = "ARG load (RPKM)", title = region) +
-    # coord_cartesian(ylim = c(4.2, ylim_max)) + # Set y-limits here
     stat_compare_means(
       comparisons = list(c("Women", "Men")),
       aes(label = ..p.signif.., size = 7),
