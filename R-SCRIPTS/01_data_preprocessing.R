@@ -139,6 +139,18 @@ rpkm_values   <- sweep(as.matrix(rpk_values), 2, library_sizes, FUN = "/")
 rpkm_dataframe <- as.data.frame(rpkm_values)
 rpkm_dataframe <- cbind(GENE = merged_assay_metadata$GENE, rpkm_dataframe)
 
+# --- Calculate the ARG load normalized only to gene length ---
+# Sum the RPK values across all genes for each sample.
+ARG_load_rpk <- colSums(rpk_values, na.rm = TRUE)
+
+# --- Add ARG_load_rpk to your sample metadata ---
+# Assuming that 'filtered_metadata' contains your sample information and that the column 'acc' matches
+# the column names in rpk_values (after the transposition)
+filtered_metadata$ARG_load_rpk <- ARG_load_rpk[match(filtered_metadata$acc, names(ARG_load_rpk))]
+
+# Optionally, you can log-transform the ARG load (e.g., for model fitting)
+filtered_metadata$log_ARG_load_rpk <- log(filtered_metadata$ARG_load_rpk + 1)
+
 ############################################################################
 ## 6) Finalize the assay: ensure rownames == GENE
 ############################################################################
