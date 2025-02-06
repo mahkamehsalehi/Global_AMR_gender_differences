@@ -144,7 +144,6 @@ rpkm_dataframe <- cbind(GENE = merged_assay_metadata$GENE, rpkm_dataframe)
 ARG_load_rpk <- colSums(rpk_values, na.rm = TRUE)
 
 # --- Add ARG_load_rpk to your sample metadata ---
-# Assuming that 'filtered_metadata' contains your sample information and that the column 'acc' matches
 # the column names in rpk_values (after the transposition)
 filtered_metadata$ARG_load_rpk <- ARG_load_rpk[match(filtered_metadata$acc, names(ARG_load_rpk))]
 
