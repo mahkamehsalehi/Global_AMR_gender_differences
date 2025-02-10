@@ -21,7 +21,15 @@ adult_metadata <- as.data.frame(colData(TSE_adult)) %>%
     sex_combined = factor(sex_combined, levels = c("Men", "Women"))
   )
 
+
+# Readcount ********* 
+counts_mat <- assay(TSE_filtered, "counts")
+adult_metadata$readcount_2 <- counts_mat %>% colSums()
+
 adult_metadata$log_ARG_load <- log(adult_metadata$ARG_load)
+
+# Region and region 
+adult_metadata$region <- adult_metadata$Region 
 
 # Add Top 5 AB classes ************************************************************** ####
 
@@ -66,6 +74,12 @@ top_5_AB_classes <-  c("Tetracycline",
 agg_counts <- agg_counts %>% 
   filter(Class %in% top_5_AB_classes)
 
+# Add pseudocount
+agg_counts$class_total <- ifelse(agg_counts$class_total == 0,
+                                 min(agg_counts$class_total[agg_counts$class_total != 0]),
+                                 agg_counts$class_total)
+
+
 agg_counts_wide <- agg_counts %>% 
   spread(key = "Class", value = "class_total")
 
@@ -78,13 +92,9 @@ adult_metadata <- full_join(adult_metadata %>% mutate(sample = acc),
                             agg_counts_wide, 
                             by = "sample")
 
+
 # Log transform top5 with pseudocount
-top5_log <- apply(adult_metadata[, top_5_AB_classes],
-                  MARGIN = 2, FUN = function(X){
-                    Y <- adult_metadata[, top_5_AB_classes]
-                    X[X == 0] <- min(Y[Y != 0])
-                    log(X)
-                  })
+top5_log <- adult_metadata[, top_5_AB_classes] %>% log
 
 colnames(top5_log) <- paste0("log_", gsub(" ", "_", colnames(top5_log)))
 
@@ -153,7 +163,7 @@ temp_df$sex_num_Men <- ifelse(temp_df$sex_combined == "Men", 0, 1)
 # dummy coding
 temp_df_one_hot <- model.matrix(~ 0 + 
                                   sex_num_Men +
-                                  Region + 
+                                  region + 
                                   age_category_new + 
                                   income_group_HIC + 
                                   Usage_high,
@@ -169,3 +179,11 @@ adult_metadata <- cbind(adult_metadata, temp_df_one_hot)
 
 # Remove temp tables
 rm(temp_df, temp_df_one_hot)
+
+
+
+
+
+
+
+
