@@ -18,7 +18,8 @@ library(TreeSummarizedExperiment)
 # Get data in adult_metadata object
 source("R-SCRIPTS/prepare_data_for_lm_analysis.R")
 
-## Dummy-encoded linear models
+## Fit ****************************** ####
+# Dummy-encoded linear models
 
 set.seed(123123)
 
@@ -62,8 +63,6 @@ for(r in responses) {     # Loop over responses
                                   collapse = "+"))
     }
     
-    # Add offet
-    # my_formula <- paste0(my_formula, " + offset(log(readcount))")
     my_formula <- my_formula %>% as.formula()
     
     
@@ -83,10 +82,10 @@ for(r in responses) {     # Loop over responses
   }
 }
 
-saveRDS(object = fit_list, file = "dummy_lm_fit_list_TOP5_AB.RDS")
+saveRDS(object = fit_list, file = "RESULTS/FITS/dummy_lm_fit_TOP5_ABs.RDS")
 
 
-## Results
+## Results ************************** ####
 full_summary <- lapply(responses, function(r) {
   lapply(incomes, function(ic) {
     
@@ -108,21 +107,6 @@ full_summary <- lapply(responses, function(r) {
   do.call(rbind,. )
 
 
-
-# full_summary %>%  
-#   filter(Feature != "Intercept") %>% 
-#   ggplot() + 
-#   geom_hline(yintercept = 0, linetype = "dashed") +
-#   geom_errorbar(aes(x = Feature, ymin = Q2.5, ymax = Q97.5,
-#                     color = Response), 
-#                 position = "dodge", width = 0.2) +
-#   facet_wrap(~income_group) +
-#   coord_flip() +
-#   labs(title = "95% CIs")
-
-
-
-## Full summary **************
 full_summary <- full_summary %>% 
   mutate(exp_Estimate = exp(Estimate), 
          exp_Q2.5 = exp(Q2.5), 
@@ -134,8 +118,6 @@ full_summary$Feature <- gsub("age_category_new", "", full_summary$Feature)
 full_summary$Feature <- gsub("Usage_high", "High Antibiotic Use", full_summary$Feature)
 full_summary$Feature <- gsub("sex_num_Men", "Woman", full_summary$Feature)
 full_summary$Feature <- gsub("_", " ", full_summary$Feature)
-# full_summary$Response <- gsub("log_ARG_load", "log(ARG load)", full_summary$Response)
-# full_summary$Response <- gsub("shannon_diversity", "Shannon", full_summary$Response)
 
 full_summary <- full_summary %>% 
   select(Predictor = Feature,
@@ -157,30 +139,26 @@ full_summary$Predictor <- factor(full_summary$Predictor,
                                             "Woman", 
                                             "Intercept"))
 
+
+full_summary$Response <- full_summary$Response %>%
+  recode("Beta.lactam" = "Beta-lactam", 
+         "Macrolide..Lincosamide..Streptogramin.B" = "Macrolide, Lincosamide, Streptogramin B")
+
 # Round
 full_summary_round <- full_summary
 full_summary_round[, 2:7] <- signif(full_summary[, 2:7], 3)
 
 
-## Full table
-# write.csv(full_summary_round, "ARG_shannon_dummy_lm.csv")
 
-## Log ARG load
-# full_summary_round %>% 
-#   filter(Response == "log(ARG load)") %>%
-#   select(-Response) %>% 
-#   write.csv(., "RESULTS/ARG_dummy_lm.csv")
 
-## Shannon
-# full_summary_round %>% 
-#   filter(Response == "Shannon") %>% 
-#   select(-Response) %>% 
-#   write.csv(., "RESULTS/shannon_dummy_lm.csv")
 
-## Plot
+## Plot ***************************** ####
 
 p <- full_summary %>% 
-  mutate(Response = substr(Response, 1, 15)) %>% 
+  # avoid legend going behind marginal
+  mutate(Response = recode(full_summary$Response, 
+                           "Macrolide, Lincosamide, Streptogramin B" = 
+                             "Macrolide, Lincosamide,\nStreptogramin B")) %>% 
   mutate(lower = (exp(Q2.5) - 1)*100,
          upper = (exp(Q97.5) - 1)*100) %>%
   filter(Predictor != "Intercept") %>% 
@@ -189,35 +167,47 @@ p <- full_summary %>%
   # geom_errorbar(aes(x = Predictor, ymin = `exp(Q2.5)`, ymax = `exp(Q97.5)`, color = Response),
   #               position = "dodge", width = 0.2, linewidth = 1) +
   geom_errorbar(aes(x = Predictor, ymin = lower, ymax = upper, color = Response),
-                position = position_dodge(0.5), width = 0.2, linewidth = 1) +
-  facet_wrap(~`Income Group`) +
+                position = position_dodge(0.5), width = 0.6, linewidth = 1.5) +
+  facet_wrap(~`Income Group`,
+             ncol = 2
+             # scales = "free"
+             ) +
   coord_flip() +
   labs(
-    # title = "95% CIs",
     y = "Effect Size (%)", x = "") +
-  theme_bw(25) +
-  # scale_y_continuous(breaks = c(-50, -25, 0,  25, 50, 100)) +
-  theme(
-    # panel.grid.major.x = element_line(color = "grey"),  # Show major gridlines for x
-    # panel.grid.minor.x = element_blank(),              # Hide minor gridlines for x
-    # panel.grid.major.y = element_blank(),              # Hide major gridlines for y
-    # panel.grid.minor.y = element_blank()               # Hide minor gridlines for y
-  ) 
-  # scale_color_manual(values = c("#AF46B4",  "#4BB446"))
+  theme_bw(40) +
+  theme(strip.background =element_rect(fill="white"))
 
 p
 
-# png("RESULTS/FIGURES/Fig5_offset_readcount_rarify_0.1.png",
-#     units = "in",
-#     res = 500,
-#     height = 7,
-#     width = 16)
-# print(p)
-# dev.off()
+png("RESULTS/FIGURES/dummy_lm_top5_AB_load.png",
+    units = "in",
+    res = 500,
+    height = 13,
+    width = 30)
+print(p)
+dev.off()
 
 
+## Table **************************** ####
+
+comparison_table <- full_summary
+
+comparison_table$`exp(Estimate)` <- round(comparison_table$`exp(Estimate)`, 3)
+comparison_table$`exp(Q2.5)` <- round(comparison_table$`exp(Q2.5)`, 3)
+comparison_table$`exp(Q97.5)` <- round(comparison_table$`exp(Q97.5)`, 3)
+
+comparison_table$Significant <- get_stars_CI_log(lower = comparison_table$`exp(Q2.5)`,
+                                                 upper = comparison_table$`exp(Q97.5)`)
+
+comparison_table$`Estimate` <- round(comparison_table$`Estimate`, 3)
+comparison_table$`Q2.5` <- round(comparison_table$`Q2.5`, 3)
+comparison_table$`Q97.5` <- round(comparison_table$`Q97.5`, 3)
 
 
+comparison_table <- comparison_table %>% 
+  select(-c(Significant))
 
+write.csv(comparison_table, "RESULTS/TABLES/lm_TOP5_AB_comparison.csv")
 
 

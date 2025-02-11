@@ -58,7 +58,7 @@ incomes <- 0:1
 
 set.seed(123123)
 
-## Model 1 ************************ ####
+## Model 1 **************************** ####
 
 fit_list1 <- list()
 
@@ -155,7 +155,7 @@ full_summary1 <- lapply(responses, function(r) {
   do.call(rbind,. ) %>% 
   mutate(model = 1)
 
-## Model 2 ************************ ####
+## Model 2 **************************** ####
 
 fit_list2 <- list()
 
@@ -261,7 +261,7 @@ full_summary2 <- lapply(responses, function(r) {
   mutate(model = 2)
 
 
-## Model 3 ************************ ####
+## Model 3 **************************** ####
 
 fit_list3 <- list()
 
@@ -362,7 +362,7 @@ full_summary3 <- lapply(responses, function(r) {
   do.call(rbind,. ) %>% 
   mutate(model = 3)
 
-## Model 4 ************************ ####
+## Model 4 **************************** ####
 
 fit_list4 <- list()
 
@@ -465,7 +465,7 @@ full_summary4 <- lapply(responses, function(r) {
 }) %>% 
   do.call(rbind,. ) %>% 
   mutate(model = 4)
-## Combine results **************** ####
+## Combine results ******************** ####
 
 ## Full summary **************
 full_summary <- list(full_summary1, 
@@ -495,6 +495,7 @@ full_summary$Feature <- gsub("age_category_new", "", full_summary$Feature)
 full_summary$Feature <- gsub("Usage_high", "High Antibiotic Use", full_summary$Feature)
 full_summary$Feature <- gsub("sex_num_Men", "Woman", full_summary$Feature)
 full_summary$Feature <- gsub("_", " ", full_summary$Feature)
+full_summary$Feature <- gsub("logreadcount", "log(read count)", full_summary$Feature)
 full_summary$Response <- gsub("ARG_load", "ARG load", full_summary$Response)
 full_summary$Response <- gsub("shannon_diversity", "Shannon", full_summary$Response)
 
@@ -513,7 +514,7 @@ full_summary <- full_summary %>%
 
 
 full_summary$Predictor <- factor(full_summary$Predictor,
-                                 levels = c("South America", "Oceania", "North America", 
+                                 levels = c("log(read count)", "South America", "Oceania", "North America", 
                                             "Europe", "Asia",
                                             "Oldest Adult", "Older Adult",
                                             "Young Adult", "Teenager",
@@ -546,7 +547,7 @@ full_summary <- full_summary %>%
 #   select(-Response) %>% 
 #   write.csv(., "RESULTS/shannon_dummy_lm.csv")
 
-## Plots ************************** ####
+## Plots ************************ ####
 
 ## Figure 5 ************ ####
 
@@ -566,16 +567,18 @@ p <- full_summary %>%
   labs(
     # title = "95% CIs",
     y = "Effect Size (%)", x = "") +
-  theme_bw(25) +
+  
   # scale_y_continuous(breaks = c(-50, -25, 0,  25, 50, 100)) +
-  theme(
-    # panel.grid.major.x = element_line(color = "grey"),  # Show major gridlines for x
-    # panel.grid.minor.x = element_blank(),              # Hide minor gridlines for x
-    # panel.grid.major.y = element_blank(),              # Hide major gridlines for y
-    # panel.grid.minor.y = element_blank()               # Hide minor gridlines for y
-  ) + 
+  # theme(
+  #   # panel.grid.major.x = element_line(color = "grey"),  # Show major gridlines for x
+  #   # panel.grid.minor.x = element_blank(),              # Hide minor gridlines for x
+  #   # panel.grid.major.y = element_blank(),              # Hide major gridlines for y
+  #   # panel.grid.minor.y = element_blank()               # Hide minor gridlines for y
+  # ) + 
   scale_color_manual(values = c("#1f77b4", "#ff7f0e")) +
-  facet_wrap(~`Income Group`, ncol = 2)
+  facet_wrap(~`Income Group`, ncol = 2) + 
+  theme_bw(25) + 
+  theme(strip.background =element_rect(fill="white"))
 
 
 
@@ -609,12 +612,7 @@ comparison_p <- full_summary %>%
     y = "Effect Size (%)", x = "") +
   theme_bw(25) +
   # scale_y_continuous(breaks = c(-50, -25, 0,  25, 50, 100)) +
-  theme(
-    # panel.grid.major.x = element_line(color = "grey"),  # Show major gridlines for x
-    # panel.grid.minor.x = element_blank(),              # Hide minor gridlines for x
-    # panel.grid.major.y = element_blank(),              # Hide major gridlines for y
-    # panel.grid.minor.y = element_blank()               # Hide minor gridlines for y
-  ) + 
+  theme(strip.background =element_rect(fill="white")) +
   scale_color_manual(values = c("#1f77b4", "#ff7f0e")) +
   facet_wrap(Model ~ `Income Group`, ncol = 2)
 
@@ -623,12 +621,12 @@ comparison_p <- full_summary %>%
 png("RESULTS/FIGURES/SFig_lm_comparison.png",
     units = "in",
     res = 500,
-    height = 20,
+    height = 25,
     width = 20)
 print(comparison_p)
 dev.off()
 
-## Print tables ******************* ####
+## Print tables ***************** ####
 
 ## Comparison ********** ####
 comparison_table <- full_summary
