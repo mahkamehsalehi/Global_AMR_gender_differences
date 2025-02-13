@@ -82,7 +82,8 @@ for(r in responses) {     # Loop over responses
   }
 }
 
-saveRDS(object = fit_list, file = "RESULTS/FITS/dummy_lm_fit_TOP5_ABs.RDS")
+# saveRDS(object = fit_list, file = "RESULTS/FITS/dummy_lm_fit_TOP5_ABs.RDS")
+fit_list <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_TOP5_ABs.RDS")
 
 
 ## Results ************************** ####
@@ -168,6 +169,11 @@ p <- full_summary %>%
   #               position = "dodge", width = 0.2, linewidth = 1) +
   geom_errorbar(aes(x = Predictor, ymin = lower, ymax = upper, color = Response),
                 position = position_dodge(0.5), width = 0.6, linewidth = 1.5) +
+  geom_point(aes(x = Predictor, y = (exp(Estimate) - 1)*100,
+                 color = Response),
+             position = position_dodge(width = 0.5),
+             # shape = 1,
+             size = 2) +
   facet_wrap(~`Income Group`,
              ncol = 2
              # scales = "free"
