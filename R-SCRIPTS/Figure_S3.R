@@ -2,7 +2,6 @@
 library(vegan)
 library(ggpubr)
 library(ggplot2)
-library(ggpubr)
 library(patchwork)
 library(tidyverse)
 library(cowplot)
@@ -127,11 +126,12 @@ combined_stats <- rbind(arg_stats, shannon_stats)
 stats_table <- ggtexttable(combined_stats, 
                            rows = NULL,
                            theme = ttheme("light", 
-                                          base_size = 20, 
+                                          base_size = 16, 
                                           padding = unit(c(10, 20), "pt"))) %>%
-  tab_add_title(text = "c", size = 20, face = "bold", just = "left", padding = unit(c(0, 0, 0, 4), "pt"))
+  tab_add_title(text = "c", size = 18, face = "bold", just = "left", 
+                padding = unit(c(0, 0, 0, 4), "pt"))
 
-# Combine violin plots
+# Combine violin plots (panels a and b)
 combined_figure_income_female <- plot_grid(
   income_arg_violin_female + custom_theme,
   income_shannon_violin_female + custom_theme,
@@ -147,23 +147,15 @@ combined_figure_income_female <- plot_grid(
 separator <- ggdraw() + 
   draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
 
-# Create final figure
-final_figure <- plot_grid(
-  combined_figure_income_female,
-  separator,
-  stats_table + theme(plot.margin = margin(0, 0, 0, 0)), 
-  ncol = 1,
-  rel_heights = c(2, 0.01, 0.5),
-  labels = c('', '', 'c'),
-  label_size = 20, 
-  label_x = 0.01,
-  label_y = 1,
-  spacing = 0
-)
+# Combine all panels
+final_figure <- combined_figure_income_female / 
+  separator / 
+  stats_table + 
+  plot_layout(heights = c(2, 0.01, NA))
 
-# Save figure
+# Save final figure
 ggsave("RESULTS/FIGURES/income_panel_with_stats.jpg", 
        final_figure, 
-       width = 15, 
-       height = 13, 
+       width = 12, 
+       height = 8, 
        dpi = 300)
