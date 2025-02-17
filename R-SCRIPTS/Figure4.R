@@ -70,41 +70,92 @@ myplot <- function(df, region, ylim_list, sig_y_offset = -3.2) {
 }
 
 # -----------------------------
-# Define table creation function for effect sizes and sample sizes
+# Define table creation function for effect sizes, CIs, and sample sizes
 # -----------------------------
 mytable <- function(df, region) {
+  # Define correct age category order
+  age_order <- c("Infant", "Toddler", "Children", "Teenager", 
+                 "Young Adult", "Middle-Aged Adult", "Older Adult", "Oldest Adult")
+  
   d <- subset(df, reg == region)
+  d$age_group <- factor(d$age_group, levels = age_order)
   
-  # Compute Wilcoxon test statistics (grouped by age group)
-  test_res <- d %>% 
-    group_by(age_group) %>% 
-    wilcox_test(ARG_load ~ gender) %>% 
-    adjust_pvalue(method = "BH")
+  # Process each age group separately
+  results <- list()
   
-  # Compute effect sizes using rstatix's helper function
-  eff_res <- d %>% 
-    group_by(age_group) %>% 
-    wilcox_effsize(ARG_load ~ gender)
+  for(ag in age_order) {
+    d_sub <- d[d$age_group == ag,]
+    
+    # Skip if age group doesn't exist in this region
+    if(nrow(d_sub) == 0) next
+    
+    # Get sample sizes
+    n_sizes <- d_sub %>%
+      group_by(gender) %>%
+      summarise(n = n(), .groups = "drop") %>%
+      pivot_wider(names_from = gender, values_from = n, names_prefix = "n_")
+    
+    # Try to compute effect size with CI
+    tryCatch({
+      d_sub$gender <- factor(d_sub$gender, levels = c("Women", "Men"))
+      
+      # Compute effect size
+      eff <- wilcox_effsize(data = d_sub, 
+                            ARG_load ~ gender, 
+                            ci = TRUE, 
+                            conf.level = 0.95)
+      
+      # Compute p-value
+      test <- wilcox.test(ARG_load ~ gender, data = d_sub)
+      
+      results[[ag]] <- data.frame(
+        age_group = ag,
+        n_Women = n_sizes$n_Women,
+        n_Men = n_sizes$n_Men,
+        effsize = eff$effsize,
+        conf.low = eff$conf.low,
+        conf.high = eff$conf.high,
+        p.value = test$p.value
+      )
+    }, error = function(e) {
+      # If effect size calculation fails, store just the sample sizes
+      results[[ag]] <- data.frame(
+        age_group = ag,
+        n_Women = n_sizes$n_Women,
+        n_Men = n_sizes$n_Men,
+        effsize = NA,
+        conf.low = NA,
+        conf.high = NA,
+        p.value = NA
+      )
+    })
+  }
   
-  # Compute sample sizes (n) per age group and gender
-  n_res <- d %>% 
-    group_by(age_group, gender) %>% 
-    summarise(n = n(), .groups = "drop") %>% 
-    pivot_wider(names_from = gender, values_from = n, names_prefix = "n_")
-  
-  # Merge all computed statistics by age group
-  ann <- left_join(test_res, eff_res, by = "age_group") %>% 
-    left_join(n_res, by = "age_group")
-  
-  # Format p-adjusted values
-  ann_table <- ann %>% 
-    mutate(`Effect Size (r)` = round(effsize, 3),
-           `p-adj` = formatC(p.adj, format = "f", digits = 4)) %>%  # Converts to fixed decimal format
-    select(`Age Group` = age_group, `n Women` = n_Women, `n Men` = n_Men, `Effect Size (r)`, `p-adj`)
-  
+  # Combine all results and adjust p-values
+  ann_table <- bind_rows(results) %>%
+    mutate(
+      p.adj = if(all(is.na(p.value))) rep(NA, n()) else p.adjust(p.value, method = "BH")
+    ) %>%
+    mutate(
+      `Age Group` = age_group,
+      `N (Women)` = n_Women,
+      `N (Men)` = n_Men,
+      `Effect Size (r)` = ifelse(is.na(effsize), "†", round(effsize, 3)),
+      `Lower 95% CI` = ifelse(is.na(conf.low), "†", round(conf.low, 3)),
+      `Upper 95% CI` = ifelse(is.na(conf.high), "†", round(conf.high, 3)),
+      `Adjusted p-value` = ifelse(is.na(p.adj), "†", formatC(p.adj, format = "f", digits = 4))
+    ) %>%
+    select(
+      `Age Group`,
+      `N (Women)`,
+      `N (Men)`,
+      `Effect Size (r)`,
+      `Lower 95% CI`,
+      `Upper 95% CI`,
+      `Adjusted p-value`
+    )
   return(ann_table)
 }
-
 
 # -----------------------------
 # Generate and Combine Plots and Tables
@@ -140,32 +191,88 @@ table_europe <- ggtexttable(mytable(df, "Europe"), rows = NULL,
 table_na <- ggtexttable(mytable(df, "North America"), rows = NULL, 
                         theme = ttheme("light", base_size = 28, padding = unit(c(10, 20), "pt")))
 
-# Combine the two region plots side by side
+# --------------------------
+# Create header labels for each section
+# --------------------------
+header_europe <- ggdraw() + 
+  draw_label("Europe", fontface = "bold", size = 36, hjust = 0.5) +
+  theme(plot.margin = margin(b = 80))
+header_na <- ggdraw() + 
+  draw_label("North America", fontface = "bold", size = 36, hjust = 0.5) +
+  theme(plot.margin = margin(b = 80))
+
+label_c <- ggdraw() + draw_label("c", fontface = "bold", size = 36, x = 0.1, hjust = 0)
+label_d <- ggdraw() + draw_label("d", fontface = "bold", size = 36, x = 0.1, hjust = 0)
+
+# --------------------------
+# Stack the label, header, and table for each region vertically
+# --------------------------
+composite_europe <- plot_grid(
+  label_c,
+  header_europe, 
+  table_europe,
+  ncol = 1,
+  rel_heights = c(0.15, 0.15, 1)
+)
+
+composite_na <- plot_grid(
+  label_d,
+  header_na, 
+  table_na,
+  ncol = 1,
+  rel_heights = c(0.15, 0.15, 1)
+)
+
+# --------------------------
+# Create grey horizontal separator
+# --------------------------
+separator <- ggdraw() + 
+  draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
+
+# --------------------------
+# Combine the tables with separator
+# --------------------------
+combined_tables <- plot_grid(
+  composite_europe,
+  separator,
+  composite_na,
+  ncol = 1,
+  rel_heights = c(1, 0.1, 1)
+)
+
+# --------------------------
+# Create top row with plots
+# --------------------------
 plots_combined <- plot_grid(
   ps[[1]] + theme(legend.position = "none"),
   ps[[2]] + theme(legend.position = "none"),
-  labels = c("a", "b"), label_size = 36,
-  ncol = 2
+  labels = c("a", "b"),
+  label_size = 36,
+  ncol = 2,
+  align = 'hv'
 )
-plots_with_legend <- plot_grid(plots_combined, leg, ncol = 1, rel_heights = c(1, 0.1))
 
-# Combine the two tables in one row
-tables_combined <- plot_grid(
-  table_europe, 
-  table_na,
-  labels = c("c", "d"), label_size = 36,
-  ncol = 2, 
-  rel_widths = c(1, 1))
+plots_with_legend <- plot_grid(
+  plots_combined, 
+  leg, 
+  ncol = 1, 
+  rel_heights = c(1, 0.1)
+)
 
-# Combine the plot section on top and the tables below, with a spacer between
-final_figure <- plot_grid(plots_with_legend, plot_spacer(), tables_combined,
-                          ncol = 1,
-                          rel_heights = c(1, 0.1, 0.5))
+# --------------------------
+# Combine everything into final figure
+# --------------------------
+final_figure <- plot_grid(
+  plots_with_legend,
+  separator,
+  combined_tables,
+  ncol = 1,
+  rel_heights = c(1, 0.05, 1.2)
+)
 
-# Display the final composite figure
-print(final_figure)
-
-# Save the final figure
-CairoJPEG("RESULTS/FIGURES/Fig4.jpg", width = 2000, height = 1600, quality = 100)
+# --------------------------
+# Save the Final Figure
+# --------------------------
+CairoJPEG("RESULTS/FIGURES/Fig4.jpg", width = 2000, height = 2000, quality = 100)
 print(final_figure)
 dev.off()
