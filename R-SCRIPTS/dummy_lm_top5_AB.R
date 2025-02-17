@@ -186,7 +186,7 @@ p <- full_summary %>%
 
 p
 
-png("RESULTS/FIGURES/dummy_lm_top5_AB_load.png",
+png("RESULTS/FIGURES/SFig_lm_top5_AB_load.png",
     units = "in",
     res = 500,
     height = 13,
