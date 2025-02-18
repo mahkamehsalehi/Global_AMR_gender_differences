@@ -149,16 +149,23 @@ stats_ARG_load <- filtered_metadata %>%
 
 # Format table for ARG Load
 arg_load_table_df <- stats_ARG_load %>%
+  select(income_group, n_Women, n_Men, effect_size, conf.low, conf.high, p_adj) %>%
   rename(
-    "Income Group"     = income_group,
-    "n Women"          = n_Women,
-    "n Men"            = n_Men,
-    "Effect Size (r)"  = effect_size,
-    "Lower 95% CI"     = conf.low,
-    "Upper 95% CI"     = conf.high,
-    "Adjusted p-value" = p_adj
+    `Income Group` = income_group,
+    `N (Women)` = n_Women,
+    `N (Men)` = n_Men,
+    `Effect Size (r)` = effect_size,
+    `Lower 95% CI` = conf.low,
+    `Upper 95% CI` = conf.high,
+    `Adjusted p-value` = p_adj
   ) %>%
-  mutate(across(where(is.numeric), ~ round(.x, 3)))
+  mutate(
+    across(c(`Effect Size (r)`, `Lower 95% CI`, `Upper 95% CI`), ~round(.x, 3)),
+    `Adjusted p-value` = case_when(
+      `Adjusted p-value` < 0.0001 ~ "p<0.0001",
+      TRUE ~ formatC(`Adjusted p-value`, format = "f", digits = 4)
+    )
+  )
 
 arg_load_table <- ggtexttable(arg_load_table_df, rows = NULL, 
                               theme = ttheme("light", base_size = 16))
@@ -198,16 +205,23 @@ stats_ARG_diversity <- filtered_metadata %>%
 
 # Format table for ARG Diversity
 arg_diversity_table_df <- stats_ARG_diversity %>%
+  select(income_group, n_Women, n_Men, effect_size, conf.low, conf.high, p_adj) %>%
   rename(
-    "Income Group"     = income_group,
-    "n Women"          = n_Women,
-    "n Men"            = n_Men,
-    "Effect Size (r)"  = effect_size,
-    "Lower 95% CI"     = conf.low,
-    "Upper 95% CI"     = conf.high,
-    "Adjusted p-value" = p_adj
+    `Income Group` = income_group,
+    `N (Women)` = n_Women,
+    `N (Men)` = n_Men,
+    `Effect Size (r)` = effect_size,
+    `Lower 95% CI` = conf.low,
+    `Upper 95% CI` = conf.high,
+    `Adjusted p-value` = p_adj
   ) %>%
-  mutate(across(where(is.numeric), ~ round(.x, 3)))
+  mutate(
+    across(c(`Effect Size (r)`, `Lower 95% CI`, `Upper 95% CI`), ~round(.x, 3)),
+    `Adjusted p-value` = case_when(
+      `Adjusted p-value` < 0.0001 ~ "p<0.0001",
+      TRUE ~ formatC(`Adjusted p-value`, format = "f", digits = 4)
+    )
+  )
 
 arg_diversity_table <- ggtexttable(arg_diversity_table_df, rows = NULL, 
                                    theme = ttheme("light", base_size = 16))
