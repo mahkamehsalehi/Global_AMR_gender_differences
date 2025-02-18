@@ -126,8 +126,8 @@ for(r in responses) {     # Loop over responses
   }
 }
 
-saveRDS(object = fit_list1, file = "RESULTS/FITS/dummy_lm_fit_M1.RDS")
-# fit_list1 <- readRDS(file = "dummy_lm_fit_M1.RDS")
+# saveRDS(object = fit_list1, file = "RESULTS/FITS/dummy_lm_fit_M1.RDS")
+fit_list1 <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_M1.RDS")
 
 ## Results
 full_summary1 <- lapply(responses, function(r) {
@@ -231,8 +231,8 @@ for(r in responses) {     # Loop over responses
   }
 }
 
-saveRDS(object = fit_list2, file = "RESULTS/FITS/dummy_lm_fit_M2.RDS")
-# fit_list2 <- readRDS(file = "dummy_lm_fit_M2.RDS")
+# saveRDS(object = fit_list2, file = "RESULTS/FITS/dummy_lm_fit_M2.RDS")
+fit_list2 <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_M2.RDS")
 
 ## Results
 full_summary2 <- lapply(responses, function(r) {
@@ -332,8 +332,8 @@ for(r in responses) {     # Loop over responses
   }
 }
 
-saveRDS(object = fit_list3, file = "RESULTS/FITS/dummy_lm_fit_M3.RDS")
-# fit_list3 <- readRDS(file = "dummy_lm_fit_M3.RDS")
+# saveRDS(object = fit_list3, file = "RESULTS/FITS/dummy_lm_fit_M3.RDS")
+fit_list3 <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_M3.RDS")
 
 ## Results
 full_summary3 <- lapply(responses, function(r) {
@@ -437,8 +437,8 @@ for(r in responses) {     # Loop over responses
   }
 }
 
-saveRDS(object = fit_list4, file = "RESULTS/FITS/dummy_lm_fit_M4.RDS")
-# fit_list4 <- readRDS(file = "dummy_lm_fit_M4.RDS")
+# saveRDS(object = fit_list4, file = "RESULTS/FITS/dummy_lm_fit_M4.RDS")
+fit_list4 <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_M4.RDS")
 
 ## Results
 full_summary4 <- lapply(responses, function(r) {
@@ -554,14 +554,18 @@ full_summary <- full_summary %>%
 p <- full_summary %>% 
   filter(Model == levels(full_summary$Model)[1]) %>%
   mutate(lower = (exp(Q2.5) - 1)*100,
-         upper = (exp(Q97.5) - 1)*100) %>%
+         upper = (exp(Q97.5) - 1)*100, 
+         mean = (exp(Estimate) - 1)*100) %>%
   filter(Predictor != "Intercept") %>% 
   ggplot() + 
   geom_hline(yintercept = 0, linetype = "dashed") +
-  # geom_errorbar(aes(x = Predictor, ymin = `exp(Q2.5)`, ymax = `exp(Q97.5)`, color = Response),
-  #               position = "dodge", width = 0.2, linewidth = 1) +
   geom_errorbar(aes(x = Predictor, ymin = lower, ymax = upper, color = Response),
-                position = "dodge", width = 0.4, linewidth = 1.5) +
+                position = position_dodge(width = 0.5), width = 0.4, linewidth = 1.5) +
+  geom_point(aes(x = Predictor, y = (exp(Estimate) - 1)*100,
+                 color = Response),
+             position = position_dodge(width = 0.5),
+             # shape = 1,
+             size = 2) +
   facet_wrap(~`Income Group`) +
   coord_flip() +
   labs(
@@ -580,7 +584,7 @@ p <- full_summary %>%
   theme_bw(25) + 
   theme(strip.background =element_rect(fill="white"))
 
-
+p
 
 png("RESULTS/FIGURES/Fig5_lm.png",
     units = "in",
@@ -605,6 +609,11 @@ comparison_p <- full_summary %>%
   #               position = "dodge", width = 0.2, linewidth = 1) +
   geom_errorbar(aes(x = Predictor, ymin = lower, ymax = upper, color = Response),
                 position = "dodge", width = 0.5, linewidth = 1.5) +
+  geom_point(aes(x = Predictor, y = (exp(Estimate) - 1)*100,
+                 color = Response),
+             position = position_dodge(width = 0.5),
+             # shape = 1,
+             size = 2) +
   # facet_wrap(~`Income Group`) +
   coord_flip() +
   labs(
