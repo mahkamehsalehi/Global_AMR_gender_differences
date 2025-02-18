@@ -99,14 +99,166 @@ combined_plot <- (age_arg_boxplot_hic + labs(title = "HIC")) +
   (age_arg_boxplot_lmic + labs(title = "LMIC")) +
   plot_layout(ncol = 1, heights = c(1, 1), guides = "collect") +
   plot_annotation(
+    tag_levels = 'a',
     theme = theme(
       plot.title = element_text(),
       plot.subtitle = element_text(),
-      legend.position = "bottom"
+      legend.position = "bottom",
+      plot.tag = element_text(face = "bold", size = 18)
+  ))
+
+
+# Create headers for tables
+header_hic <- ggdraw() + 
+  draw_label("HIC", fontface = "bold", size = 16, hjust = 0.5) +
+  theme(plot.margin = margin(b = 1))
+
+header_lmic <- ggdraw() + 
+  draw_label("LMIC", fontface = "bold", size = 16, hjust = 0.5) +
+  theme(plot.margin = margin(b = 1))
+
+# Set the correct order for age categories
+age_order <- c("Infant", "Toddler", "Children", "Teenager", "Young Adult", 
+               "Middle-Aged Adult", "Older Adult", "Oldest Adult")
+
+# Calculate statistics for HIC
+hic_effect_sizes <- lapply(unique(metadata_hic$age_category_new), function(age) {
+  hic_data <- metadata_hic %>% filter(age_category_new == age)
+  
+  if(nrow(hic_data) >= 2) {
+    # Use wilcox.test
+    test <- wilcox.test(shannon_diversity ~ gender, data = hic_data)
+    res <- wilcox_effsize(data = hic_data, shannon_diversity ~ gender)
+    n_samples <- hic_data %>% group_by(gender) %>% summarise(n = n())
+    
+    data.frame(
+      age_category_new = age,
+      n_women = n_samples$n[n_samples$gender == "Women"],
+      n_men = n_samples$n[n_samples$gender == "Men"],
+      effect_size = res$effsize,
+      p_value = test$p.value
     )
+  }
+}) %>% bind_rows()
+
+# Calculate statistics for LMIC
+lmic_effect_sizes <- lapply(unique(metadata_lmic$age_category_new), function(age) {
+  lmic_data <- metadata_lmic %>% filter(age_category_new == age)
+  
+  if(nrow(lmic_data) >= 2) {
+    test <- wilcox.test(shannon_diversity ~ gender, data = lmic_data)
+    res <- wilcox_effsize(data = lmic_data, shannon_diversity ~ gender)
+    n_samples <- lmic_data %>% group_by(gender) %>% summarise(n = n())
+    
+    data.frame(
+      age_category_new = age,
+      n_women = n_samples$n[n_samples$gender == "Women"],
+      n_men = n_samples$n[n_samples$gender == "Men"],
+      effect_size = res$effsize,
+      p_value = test$p.value
+    )
+  }
+}) %>% bind_rows()
+
+# Format HIC statistics
+hic_stats <- hic_effect_sizes %>%
+  mutate(
+    age_category_new = factor(age_category_new, levels = age_order)
+  ) %>%
+  arrange(age_category_new) %>%
+  mutate(
+    `Effect Size (r)` = round(effect_size, 3),
+    # Apply BH adjustment
+    `Adjusted p-value` = case_when(
+      p_value < 0.0001 ~ "p<0.0001",
+      TRUE ~ formatC(p_value, format = "f", digits = 4)
+    ),
+    `Lower 95% CI` = round(effect_size - 1.96 * sqrt((1-effect_size^2)/(n_women+n_men-2)), 3),
+    `Upper 95% CI` = round(effect_size + 1.96 * sqrt((1-effect_size^2)/(n_women+n_men-2)), 3)
+  ) %>%
+  select(
+    `Age Category` = age_category_new,
+    `N (Women)` = n_women,
+    `N (Men)` = n_men,
+    `Effect Size (r)`,
+    `Lower 95% CI`,
+    `Upper 95% CI`,
+    `Adjusted p-value`
   )
 
-# Save the combined plot
-CairoJPEG("RESULTS/FIGURES/Combined_ARG_diversity.jpg", width = 940, height = 750, quality = 400)
-print(combined_plot)
-dev.off()
+# Format LMIC statistics
+lmic_stats <- lmic_effect_sizes %>%
+  mutate(
+    age_category_new = factor(age_category_new, levels = age_order)
+  ) %>%
+  arrange(age_category_new) %>%
+  mutate(
+    `Effect Size (r)` = round(effect_size, 3),
+    # Apply BH adjustment
+    `Adjusted p-value` = case_when(
+      p_value < 0.0001 ~ "p<0.0001",
+      TRUE ~ formatC(p_value, format = "f", digits = 4)
+    ),
+    `Lower 95% CI` = round(effect_size - 1.96 * sqrt((1-effect_size^2)/(n_women+n_men-2)), 3),
+    `Upper 95% CI` = round(effect_size + 1.96 * sqrt((1-effect_size^2)/(n_women+n_men-2)), 3)
+  ) %>%
+  select(
+    `Age Category` = age_category_new,
+    `N (Women)` = n_women,
+    `N (Men)` = n_men,
+    `Effect Size (r)`,
+    `Lower 95% CI`,
+    `Upper 95% CI`,
+    `Adjusted p-value`
+  )
+
+# Create HIC table
+hic_table <- ggtexttable(
+  hic_stats,
+  rows = NULL,
+  theme = ttheme("light", 
+                 base_size = 16,
+                 padding = unit(c(10, 20), "pt"))
+) %>%
+  tab_add_title(text = "c", 
+                face = "bold", 
+                size = 18, 
+                just = "left",
+                padding = unit(c(0, 0, 0, 4), "pt"))
+
+# Create LMIC table
+lmic_table <- ggtexttable(
+  lmic_stats,
+  rows = NULL,
+  theme = ttheme("light", 
+                 base_size = 16,
+                 padding = unit(c(10, 20), "pt"))
+) %>%
+  tab_add_title(text = "d", 
+                face = "bold", 
+                size = 18, 
+                just = "left",
+                padding = unit(c(0, 0, 0, 4), "pt"))
+
+# Create separator
+separator <- ggdraw() + 
+  draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
+
+# Combine everything vertically
+final_plot <- plot_grid(
+  combined_plot,
+  separator,
+  plot_grid(header_hic, hic_table, ncol = 1, rel_heights = c(0.1, 1)),
+  separator,
+  plot_grid(header_lmic, lmic_table, ncol = 1, rel_heights = c(0.1, 1)),
+  ncol = 1,
+  rel_heights = c(2, 0.1, 1, 0.1, 1)
+)
+
+# Save the final plot
+ggsave("RESULTS/FIGURES/ARG_diversity_income.jpg", 
+       final_plot, 
+       width = 12, 
+       height = 25,
+       dpi = 300)
+
