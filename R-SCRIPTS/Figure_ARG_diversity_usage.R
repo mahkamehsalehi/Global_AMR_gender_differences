@@ -366,6 +366,9 @@ calc_stats <- function(data, variable, group) {
     test <- wilcox.test(shannon_diversity ~ Usage_group, data = data)
   }
   
+  # Get adjusted p-value
+  adj_pval <- p.adjust(test$p.value, method = "BH")
+  
   # Combine results into a summary data frame
   results <- data.frame(
     "Group" = group,
@@ -374,14 +377,16 @@ calc_stats <- function(data, variable, group) {
     "Effect Size (r)" = round(eff$effsize, 3),
     "Lower 95% CI" = round(eff$conf.low, 3),
     "Upper 95% CI" = round(eff$conf.high, 3),
-    "Adjusted p-value" = formatC(p.adjust(test$p.value, method = "BH"), 
-                                 format = "f", digits = 4),
+    "Adjusted p-value" = if(adj_pval < 0.0001) {
+      "p<0.0001"
+    } else {
+      formatC(adj_pval, format = "f", digits = 4)
+    },
     check.names = FALSE
   )
   
   return(results)
 }
-
 # ----------------------------------------------------------------------------------
 # Calculate statistics for ARG load and Shannon diversity across different groups
 # ----------------------------------------------------------------------------------
