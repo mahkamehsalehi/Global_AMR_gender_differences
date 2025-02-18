@@ -143,7 +143,11 @@ mytable <- function(df, region) {
       `Effect Size (r)` = ifelse(is.na(effsize), "†", round(effsize, 3)),
       `Lower 95% CI` = ifelse(is.na(conf.low), "†", round(conf.low, 3)),
       `Upper 95% CI` = ifelse(is.na(conf.high), "†", round(conf.high, 3)),
-      `Adjusted p-value` = ifelse(is.na(p.adj), "†", formatC(p.adj, format = "f", digits = 4))
+      `Adjusted p-value` = case_when(
+        is.na(p.adj) ~ "†",
+        p.adj < 0.0001 ~ "p<0.0001",
+        TRUE ~ formatC(p.adj, format = "f", digits = 4)
+      )
     ) %>%
     select(
       `Age Group`,
