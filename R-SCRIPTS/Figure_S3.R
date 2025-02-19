@@ -100,6 +100,7 @@ calc_stats <- function(data, variable) {
     test <- wilcox.test(shannon_diversity ~ income_group, data = data)
   }
   
+  # Create results with check.names=FALSE to preserve parentheses
   results <- data.frame(
     "Metric" = if(variable == "ARG_load") "ARG load" else "ARG diversity",
     "N (HIC)" = n_sizes$n_HIC,
@@ -107,20 +108,34 @@ calc_stats <- function(data, variable) {
     "Effect Size (r)" = round(eff$effsize, 3),
     "Lower 95% CI" = round(eff$conf.low, 3),
     "Upper 95% CI" = round(eff$conf.high, 3),
-    "Adjusted p-value" = formatC(p.adjust(test$p.value, method = "BH"), 
-                                 format = "f", digits = 4),
     check.names = FALSE
-  )
+  ) %>%
+    mutate(
+      "Adjusted p-value" = if(p.adjust(test$p.value, method = "BH") < 0.0001) {
+        "p<0.0001"
+      } else {
+        formatC(p.adjust(test$p.value, method = "BH"), format = "f", digits = 5)
+      }
+    )
   
   return(results)
 }
-
 # Calculate statistics for both metrics
 arg_stats <- calc_stats(filtered_metadata_female_no_outliers, "ARG_load")
 shannon_stats <- calc_stats(filtered_metadata_female_no_outliers, "shannon_diversity")
 
 # Combine results
 combined_stats <- rbind(arg_stats, shannon_stats)
+
+# Create formatted table with corrected column names
+stats_table <- ggtexttable(combined_stats, 
+                           rows = NULL,
+                           theme = ttheme("light", 
+                                          base_size = 16, 
+                                          padding = unit(c(10, 20), "pt"))) %>%
+  tab_add_title(text = "c", size = 18, face = "bold", just = "left", 
+                padding = unit(c(0, 0, 0, 4), "pt"))
+
 
 # Create formatted table
 stats_table <- ggtexttable(combined_stats, 
