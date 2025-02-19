@@ -1,54 +1,151 @@
+# ---------------------------
+# Load required libraries
+# ---------------------------
+library(tidyverse)
 library(mia)
 library(vegan)
 library(ggpubr)
-library(ggpubr)
 library(patchwork)
-library(tidyverse)
+library(SummarizedExperiment)
+library(ggthemes)
 
 # ---------------------------
 # Data Preparation
 # ---------------------------
+# Read the filtered TSE object for plotting metadata (PCoA plot)
+tse_filtered <- readRDS("DATA/TSE_filtered.rds")
+tse_metadata <- as.data.frame(colData(tse_filtered)) %>% 
+  filter(!is.na(income_group))
 
-tse <- readRDS("DATA/TSE_filtered.rds")
+# Read the main TSE object (for counts and gene classes)
+tse <- readRDS("DATA/TSE.rds")
+counts <- assay(tse)
+gene_classes <- rowData(tse)$Class
 
-# Extract metadata from the TSE object and convert it to a data frame
-tse_metadata <- as.data.frame(colData(tse)) %>% filter(!is.na(income_group))
+# Process and recode metadata
+meta <- as.data.frame(colData(tse)) %>%
+  mutate(
+    sex_combined = case_when(
+      sex_combined == "female" ~ "Women",
+      sex_combined == "male" ~ "Men",
+      TRUE ~ NA_character_
+    ),
+    Income_Group = case_when(
+      World_Bank_Income_Group == "High income" ~ "HIC",
+      World_Bank_Income_Group %in% c("Low income", "Lower middle income", "Upper middle income") ~ "LMIC",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  drop_na(sex_combined, log10_ARG_load, Income_Group)
 
 # ---------------------------
-# PCoA Plot
-# --------------------------
+# Gene Class Analysis: Top 5 Gene Classes per Group
+# ---------------------------
+for (sex in c("Men", "Women")) {
+  for (income in c("HIC", "LMIC")) {
+    idx <- which(meta$sex_combined == sex & meta$Income_Group == income)
+    
+    if (length(idx) == 0) {
+      cat("No samples for", sex, "in", income, "\n")
+      next
+    }
+    
+    group_counts <- rowSums(counts[, idx, drop = FALSE])
+    class_totals <- tapply(group_counts, gene_classes, sum, na.rm = TRUE)
+    top5 <- sort(class_totals, decreasing = TRUE)[1:5]
+    
+    cat("Top 5 gene classes for", sex, "in", income, ":\n")
+    print(top5)
+    cat("\n")
+  }
+}
 
-p <- ggplot(tse_metadata, aes(x = PC1, y = PC2, color = gender)) +
-  geom_point(size = 0.8, alpha = 1) +
+# ---------------------------
+# Prepare Data for Bar Plot
+# ---------------------------
+results <- list()
+
+for (sex in c("Men", "Women")) {
+  for (income in c("HIC", "LMIC")) {
+    idx <- which(meta$sex_combined == sex & meta$Income_Group == income)
+    
+    if (length(idx) == 0) {
+      cat("No samples for", sex, "in", income, "\n")
+      next
+    }
+    
+    group_counts <- rowSums(counts[, idx, drop = FALSE])
+    class_totals <- tapply(group_counts, gene_classes, sum, na.rm = TRUE)
+    top5 <- sort(class_totals, decreasing = TRUE)[1:5]
+    
+    df_temp <- data.frame(
+      sex = sex,
+      income = income,
+      gene_class = names(top5),
+      abundance = as.numeric(top5)
+    )
+    
+    results[[paste(sex, income, sep = "_")]] <- df_temp
+  }
+}
+
+df_bar <- do.call(rbind, results)
+df_bar$sex <- factor(df_bar$sex, levels = c("Women", "Men"))
+
+# ---------------------------
+# Plotting
+# ---------------------------
+# Bar Plot: Total abundance of top 5 gene classes per group
+class_plot <- ggplot(df_bar, aes(x = reorder(gene_class, abundance), y = abundance, fill = gene_class)) +
+  geom_bar(stat = "identity") +
+  facet_grid(rows = vars(sex), cols = vars(income), scales = "free_y") +
+  coord_flip() +
+  labs(x = "Gene class", y = "Total abundance", tag = "a") +
+  scale_fill_viridis_d(option = "mako") +
+  theme_minimal(base_size = 20) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "gray90"),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    strip.background = element_rect(fill = "gray95", color = "black", linewidth = 0.5),
+    strip.text = element_text(face = "plain", size = 16),
+    axis.line = element_line(color = "black", linewidth = 0.5),
+    axis.ticks = element_line(color = "black"),
+    axis.text = element_text(size = 20),
+    axis.title = element_text(size = 22, face = "plain"),
+    plot.tag = element_text(size = 24, face = "plain"),
+    legend.position = "none"
+  )
+
+# PCoA Plot: Plotting PC1 vs PC2 colored by gender
+pcoa_plot <- ggplot(tse_metadata, aes(x = PC1, y = PC2, color = gender)) +
+  geom_point(size = 1, alpha = 1) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  stat_ellipse(aes(group = gender), type = "norm", level = 0.95, size = 0.7) +
-  # FIXME: automate the explanatory percentages!
   labs(
-    x = paste0("PC1 (14.95%)"),
-    y = paste0("PC2 (10.34%)"),
-    color = "Gender"
+    x = "PC1 (14.95%)",
+    y = "PC2 (10.34%)",
+    color = "Gender",
+    tag = "b"
   ) +
   theme_minimal(base_size = 18) +
   theme(
-    plot.title = element_text(hjust = 0.5, face = "bold"),
-    axis.title = element_text(),
-    axis.text = element_text(),
-    legend.title = element_text(),
-    legend.text = element_text(),
+    plot.tag = element_text(size = 24, face = "bold"),
+    axis.title = element_text(size = 22, face = "plain"),
+    axis.text = element_text(size = 20),
+    strip.text = element_text(face = "plain", size = 16),
+    legend.title = element_text(size = 22, face = "plain"),
+    legend.text = element_text(size = 20),
     legend.position = "bottom",
-    legend.direction="horizontal",
-    axis.line = element_line(color = "black")
+    legend.direction = "horizontal",
+    axis.line = element_line(color = "black"),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5)
   ) +
-  facet_grid(income_group ~ age_category) 
-  
+  facet_grid(income_group ~ age_category_new)
 
-print(p)
+# Combine the plots using patchwork
+combined_plot <- class_plot / pcoa_plot +
+  plot_layout(heights = c(1, 1.2))
 
-# This generates publication quality printout:
-library(Cairo)
-CairoJPEG("RESULTS/FIGURES/Fig2_PCoA.jpg", width=1200, height=450, quality=100)
-print(p)
-dev.off()
-
-
-
+# Save the combined plot
+ggsave("RESULTS/FIGURES/gene_class_pcoa.png", combined_plot, width = 22, height = 12, dpi = 300)
