@@ -342,8 +342,9 @@ usage_shannon_boxplot_female_lmic <- ggplot(metadata_lmic %>% filter(gender == "
 # Define a function to calculate statistics for comparing usage groups
 # ----------------------------------------------------------------------------------
 
-calc_stats <- function(data, variable, group) {
-  # Calculate sample sizes for each usage group and reshape the output
+# Function to calculate usage group comparisons
+calc_usage_stats <- function(data, variable, group) {
+  # Calculate sample sizes for each usage group
   n_sizes <- data %>%
     group_by(Usage_group) %>%
     summarise(n = n(), .groups = "drop") %>%
@@ -369,70 +370,99 @@ calc_stats <- function(data, variable, group) {
   # Get adjusted p-value
   adj_pval <- p.adjust(test$p.value, method = "BH")
   
-  # Combine results into a summary data frame
+  # Combine results
   results <- data.frame(
+    "Comparison" = "Usage (High vs Low)",
     "Group" = group,
-    "N (High)" = n_sizes$n_High,
-    "N (Low)" = n_sizes$n_Low,
+    "N (Group 1)" = n_sizes$n_High,
+    "N (Group 2)" = n_sizes$n_Low,
     "Effect Size (r)" = round(eff$effsize, 3),
     "Lower 95% CI" = round(eff$conf.low, 3),
     "Upper 95% CI" = round(eff$conf.high, 3),
-    "Adjusted p-value" = if(adj_pval < 0.0001) {
-      "p<0.0001"
-    } else {
-      formatC(adj_pval, format = "f", digits = 4)
-    },
+    "Adjusted p-value" = if(adj_pval < 0.0001) "p<0.0001" else formatC(adj_pval, format = "f", digits = 4),
     check.names = FALSE
   )
   
   return(results)
 }
-# ----------------------------------------------------------------------------------
-# Calculate statistics for ARG load and Shannon diversity across different groups
-# ----------------------------------------------------------------------------------
 
-# Statistics for ARG load
-arg_stats_hic <- calc_stats(metadata_hic, "ARG_load", "HICs")
-arg_stats_lmic <- calc_stats(metadata_lmic, "ARG_load", "LMICs")
-arg_stats_hic_women <- calc_stats(metadata_hic %>% filter(gender == "Women"), "ARG_load", "Women in HICs")
-arg_stats_lmic_women <- calc_stats(metadata_lmic %>% filter(gender == "Women"), "ARG_load", "Women in LMICs")
-
-# Statistics for Shannon diversity
-shannon_stats_hic <- calc_stats(metadata_hic, "shannon_diversity", "HICs")
-shannon_stats_lmic <- calc_stats(metadata_lmic, "shannon_diversity", "LMICs")
-shannon_stats_hic_women <- calc_stats(metadata_hic %>% filter(gender == "Women"), "shannon_diversity", "Women in HICs")
-shannon_stats_lmic_women <- calc_stats(metadata_lmic %>% filter(gender == "Women"), "shannon_diversity", "Women in LMICs")
-
-# Combine statistics from different comparisons for display in tables
-combined_arg_stats <- rbind(arg_stats_hic, arg_stats_lmic, arg_stats_hic_women, arg_stats_lmic_women)
-combined_shannon_stats <- rbind(shannon_stats_hic, shannon_stats_lmic, shannon_stats_hic_women, shannon_stats_lmic_women)
-
-# ----------------------------------------------------------------------------------
-# Combine plots and statistics tables into final figures using patchwork
-# ----------------------------------------------------------------------------------
-
-# ----- ARG load figures -----
-
-# Create a grid of ARG load plots (for HIC and LMIC, overall and women only) with automatic tagging (labels a-d)
-combined_figure_usage_arg_tagged <- usage_arg_boxplot_hic + 
-  usage_arg_boxplot_lmic +
-  usage_arg_boxplot_female_hic + 
-  usage_arg_boxplot_female_lmic +
-  plot_layout(ncol = 2, nrow = 2) +
-  plot_annotation(
-    tag_levels = 'a',
-    theme = theme(
-      plot.tag = element_text(size = 18, face = "bold"),
-      plot.tag.position = c(0, 1)
-    )
+# Function to calculate gender comparisons
+calc_gender_stats <- function(data, variable, group, usage_group) {
+  # Calculate sample sizes for each gender
+  n_sizes <- data %>%
+    filter(Usage_group == usage_group) %>%
+    group_by(gender) %>%
+    summarise(n = n(), .groups = "drop") %>%
+    pivot_wider(names_from = gender, values_from = n, names_prefix = "n_")
+  
+  filtered_data <- data %>% filter(Usage_group == usage_group)
+  
+  # Calculate effect size and perform the Wilcoxon test
+  if(variable == "ARG_load") {
+    eff <- wilcox_effsize(data = filtered_data, 
+                          ARG_load ~ gender, 
+                          ci = TRUE, 
+                          conf.level = 0.95)
+    test <- wilcox.test(ARG_load ~ gender, data = filtered_data)
+  } else {
+    eff <- wilcox_effsize(data = filtered_data, 
+                          shannon_diversity ~ gender, 
+                          ci = TRUE, 
+                          conf.level = 0.95)
+    test <- wilcox.test(shannon_diversity ~ gender, data = filtered_data)
+  }
+  
+  # Get adjusted p-value
+  adj_pval <- p.adjust(test$p.value, method = "BH")
+  
+  # Combine results
+  results <- data.frame(
+    "Comparison" = "Gender (Women vs Men)",
+    "Group" = paste(group, "-", usage_group, "Usage"),
+    "N (Group 1)" = n_sizes$n_Women,
+    "N (Group 2)" = n_sizes$n_Men,
+    "Effect Size (r)" = round(eff$effsize, 3),
+    "Lower 95% CI" = round(eff$conf.low, 3),
+    "Upper 95% CI" = round(eff$conf.high, 3),
+    "Adjusted p-value" = if(adj_pval < 0.0001) "p<0.0001" else formatC(adj_pval, format = "f", digits = 4),
+    check.names = FALSE
   )
+  
+  return(results)
+}
 
-# Create a horizontal separator line using cowplot
-separator <- ggdraw() + 
-  draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
+# Calculate all statistics for ARG load
+arg_stats_complete <- rbind(
+  # Usage comparisons
+  calc_usage_stats(metadata_hic, "ARG_load", "HICs"),
+  calc_usage_stats(metadata_lmic, "ARG_load", "LMICs"),
+  calc_usage_stats(metadata_hic %>% filter(gender == "Women"), "ARG_load", "Women in HICs"),
+  calc_usage_stats(metadata_lmic %>% filter(gender == "Women"), "ARG_load", "Women in LMICs"),
+  
+  # Gender comparisons
+  calc_gender_stats(metadata_hic, "ARG_load", "HICs", "High"),
+  calc_gender_stats(metadata_hic, "ARG_load", "HICs", "Low"),
+  calc_gender_stats(metadata_lmic, "ARG_load", "LMICs", "High"),
+  calc_gender_stats(metadata_lmic, "ARG_load", "LMICs", "Low")
+)
 
-# Create a table for ARG load statistics with a manual title "e"
-arg_stats_table <- ggtexttable(combined_arg_stats, 
+# Calculate all statistics for Shannon diversity
+shannon_stats_complete <- rbind(
+  # Usage comparisons
+  calc_usage_stats(metadata_hic, "shannon_diversity", "HICs"),
+  calc_usage_stats(metadata_lmic, "shannon_diversity", "LMICs"),
+  calc_usage_stats(metadata_hic %>% filter(gender == "Women"), "shannon_diversity", "Women in HICs"),
+  calc_usage_stats(metadata_lmic %>% filter(gender == "Women"), "shannon_diversity", "Women in LMICs"),
+  
+  # Gender comparisons
+  calc_gender_stats(metadata_hic, "shannon_diversity", "HICs", "High"),
+  calc_gender_stats(metadata_hic, "shannon_diversity", "HICs", "Low"),
+  calc_gender_stats(metadata_lmic, "shannon_diversity", "LMICs", "High"),
+  calc_gender_stats(metadata_lmic, "shannon_diversity", "LMICs", "Low")
+)
+
+# Update the table creation code
+arg_stats_table <- ggtexttable(arg_stats_complete, 
                                rows = NULL,
                                theme = ttheme("light", 
                                               base_size = 16, 
@@ -444,30 +474,7 @@ arg_stats_table <- ggtexttable(combined_arg_stats,
                 just = "left",
                 padding = unit(c(0, 0, 0, 4), "pt"))
 
-# Combine the tagged plot grid, separator, and stats table into the final ARG load figure layout
-final_figure_arg <- combined_figure_usage_arg_tagged /
-  separator /
-  arg_stats_table +
-  plot_layout(heights = c(2, 0.01, 1))
-
-# ----- Shannon diversity figures -----
-
-# Create a grid of Shannon diversity plots with automatic tagging (labels a-d)
-combined_figure_usage_shannon_tagged <- usage_shannon_boxplot_hic + 
-  usage_shannon_boxplot_lmic +
-  usage_shannon_boxplot_female_hic + 
-  usage_shannon_boxplot_female_lmic +
-  plot_layout(ncol = 2, nrow = 2) +
-  plot_annotation(
-    tag_levels = 'a',
-    theme = theme(
-      plot.tag = element_text(size = 18, face = "bold"),
-      plot.tag.position = c(0, 1)
-    )
-  )
-
-# Create a table for Shannon diversity statistics with a manual title "e"
-shannon_stats_table <- ggtexttable(combined_shannon_stats, 
+shannon_stats_table <- ggtexttable(shannon_stats_complete, 
                                    rows = NULL,
                                    theme = ttheme("light", 
                                                   base_size = 16, 
@@ -478,13 +485,6 @@ shannon_stats_table <- ggtexttable(combined_shannon_stats,
                 face = "bold", 
                 just = "left",
                 padding = unit(c(0, 0, 0, 4), "pt"))
-
-# Combine the tagged plot grid, separator, and stats table into the final Shannon diversity figure layout
-final_figure_shannon <- combined_figure_usage_shannon_tagged /
-  separator /
-  shannon_stats_table +
-  plot_layout(heights = c(2, 0.01, 1))
-
 # ----------------------------------------------------------------------------------
 # Create final figures using cowplot for alternative layout and saving
 # ----------------------------------------------------------------------------------
@@ -520,8 +520,8 @@ final_figure_arg_cow <- plot_grid(
 # Save the final ARG load figure
 ggsave("RESULTS/FIGURES/usage_ARG_load.png", 
        final_figure_arg_cow, 
-       width = 12, 
-       height = 14,
+       width = 15, 
+       height = 16,
        dpi = 300)
 
 # ----- Shannon diversity figure -----
@@ -555,6 +555,6 @@ final_figure_shannon_cow <- plot_grid(
 # Save the final Shannon diversity figure
 ggsave("RESULTS/FIGURES/usage__ARG_diversity.png", 
        final_figure_shannon_cow, 
-       width = 12, 
-       height = 14,
+       width = 15, 
+       height = 16,
        dpi = 300)
