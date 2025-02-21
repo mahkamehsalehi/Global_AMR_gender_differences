@@ -39,7 +39,17 @@ meta <- as.data.frame(colData(tse)) %>%
   drop_na(sex_combined, log10_ARG_load, Income_Group)
 
 # ---------------------------
-# Gene Class Analysis: Top 5 Gene Classes per Group (Normalized)
+# Identify Top 5 Gene Classes Across All Samples
+# ---------------------------
+# Compute total abundance per gene class across all samples
+total_counts <- rowSums(counts)
+total_class_abundance <- tapply(total_counts, gene_classes, sum, na.rm = TRUE)
+
+# Identify the top 5 most abundant gene classes
+top5_classes <- names(sort(total_class_abundance, decreasing = TRUE)[1:5])
+
+# ---------------------------
+# Gene Class Analysis: Filtered to Top 5 Classes Only
 # ---------------------------
 results <- list()
 
@@ -55,16 +65,18 @@ for (sex in c("Men", "Women")) {
     # Calculate number of samples in this group
     n_samples <- length(idx)
     
-    # Calculate average abundance per sample
+    # Compute average abundance per sample
     group_counts <- rowSums(counts[, idx, drop = FALSE]) / n_samples
     class_totals <- tapply(group_counts, gene_classes, sum, na.rm = TRUE)
-    top5 <- sort(class_totals, decreasing = TRUE)[1:5]
+    
+    # Keep only the top 5 classes
+    class_totals <- class_totals[names(class_totals) %in% top5_classes]
     
     df_temp <- data.frame(
       sex = sex,
       income = income,
-      gene_class = names(top5),
-      abundance = as.numeric(top5),
+      gene_class = names(class_totals),
+      abundance = as.numeric(class_totals),
       n_samples = n_samples  # Store sample size for reference
     )
     
@@ -85,7 +97,7 @@ class_plot <- ggplot(df_bar, aes(x = reorder(gene_class, abundance), y = abundan
   coord_flip() +
   labs(
     x = "Gene class",
-    y = "Average abundance per sample",
+    y = "Average abundance per sample (RPKM)",
     tag = "a"
   ) +
   scale_fill_viridis_d(option = "mako") +
@@ -105,7 +117,9 @@ class_plot <- ggplot(df_bar, aes(x = reorder(gene_class, abundance), y = abundan
     legend.position = "none"
   )
 
-# PCoA Plot remains the same
+# ---------------------------
+# PCoA Plot (with better spacing)
+# ---------------------------
 pcoa_plot <- ggplot(tse_metadata, aes(x = PC1, y = PC2, color = gender)) +
   geom_point(size = 1, alpha = 1) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
@@ -128,11 +142,21 @@ pcoa_plot <- ggplot(tse_metadata, aes(x = PC1, y = PC2, color = gender)) +
     axis.line = element_line(color = "black"),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5)
   ) +
-  facet_grid(income_group ~ age_category_new)
+  facet_grid(income_group ~ age_category_new, switch = "y")
 
-# Combine the plots using patchwork
-combined_plot <- class_plot / pcoa_plot +
-  plot_layout(heights = c(1, 1.2))
+library(cowplot)
 
-# Save the combined plot
-ggsave("RESULTS/FIGURES/gene_class_pcoa_normalized.png", combined_plot, width = 22, height = 12, dpi = 300)
+# ---------------------------
+# Combine the plots
+# ---------------------------
+
+# Combine the bar plot and PCoA plot vertically
+final_plot <- plot_grid(class_plot, pcoa_plot, 
+                        ncol = 1,
+                        align = "v",
+                        rel_heights = c(1, 1))
+
+# ---------------------------
+# Save the final plot
+# ---------------------------
+ggsave("RESULTS/FIGURES/gene_class_pcoa_normalized.png", final_plot, width = 22, height = 12, dpi = 300)
