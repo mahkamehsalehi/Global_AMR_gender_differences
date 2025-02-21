@@ -31,7 +31,6 @@ This repository contains scripts for analyzing antibiotic resistance gene (ARG) 
 
 ### 3. Statistical Modeling
 
-- **`03_modeling.R`** → (Currently empty, reserved for future modeling scripts).
 - **`dummy_lm.R`** → Performs linear modeling for **Figure 5**, generates **Figure S8**, and creates tables **S4, S5, S12, S13**.
 - **`dummy_lm_top5_AB.R`** → Compares **top 5 antibiotic usage patterns** and generates **Figure S7**.
 - **`tukey_women_age_region.R`** → Performs **Tukey's tests** to compare ARG load across age, gender, and region (outputs **Tables S6–S9**).
@@ -65,26 +64,5 @@ This repository contains scripts for analyzing antibiotic resistance gene (ARG) 
 | - | **Table S9** | `tukey_women_age_region.R` |
 | - | **Table S12** | `dummy_lm.R` |
 | - | **Table S13** | `dummy_lm.R` |
----
-
-## Usage Instructions
-
-1. **Run data preprocessing**
-   - Start with `01_data_preprocessing.R` to create the **TSE object**.
-     - `metadata_processing_antibiotic_use.R`
-     - `metadata_processing_bioproject.R`
-     - `metadata_processing_country.R`
-     - `metadata_processing_sex.R`
-     - `metadata_processing_trip_distribution.R`
-
-2. **Perform exploratory analysis**
-   - Run `02_ARG_load_analysis.R` to visualize **ARG load trends**.
-   - Run `04_beta_diversity.R` for **beta diversity analysis**.
-
-3. **Perform modeling and statistical tests**
-   - Use `dummy_lm.R` and `dummy_lm_top5_AB.R` for **linear modeling**.
-   - Run `tukey_women_age_region.R` for **post-hoc comparisons**.
-   - Run `permanova.R` to test **group-level diversity differences**.
-
 ---
 
