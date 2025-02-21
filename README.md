@@ -53,6 +53,10 @@ This repository contains scripts for analyzing antibiotic resistance gene (ARG) 
 | **Figure S6** | - | `Figure_S6_PCoA.R` |
 | **Figure S7** | - | `dummy_lm_top5_AB.R` |
 | **Figure S8** | - | `dummy_lm.R` |
+| **Figure S9** | - | `Figure_subgroup_histograms.R` |
+| - | **Table S1** | `PERMANOVA.R` |
+| - | **Table S2** | `Table_S2_S3.R` |
+| - | **Table S3** | `Table_S2_S3.R` |
 | - | **Table S4** | `dummy_lm.R` |
 | - | **Table S5** | `dummy_lm.R` |
 | - | **Table S6** | `tukey_women_age_region.R` |
