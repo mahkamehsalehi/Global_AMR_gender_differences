@@ -39,20 +39,28 @@ This repository contains scripts for analyzing antibiotic resistance gene (ARG) 
 
 ---
 
-### 4. Figures and Outputs
-
-| **Figure/Table** | **Script** |
-|-----------------|------------|
-| **Figure 1** – Data Summary | `Figure_1_DataSummary.R` |
-| **Figure 2** – PCoA & Top 5 ARG Classes | `Figure_2_PCoA_top5_ARG.R` |
-| **Figure 3** – Income & Gender | `Figure_3_income_gender.R` |
-| **Figure 4** – ARG Beta Diversity (HIC, Region, Age) | `Figure_4_hic_region_age.R` |
-| **Figure S1, S2** – Antibiotic Usage | `Figure_S1_S2_Usage.R` |
-| **Figure S3** – Income & Women | `Figure_S3_income_women.R` |
-| **Figure S4** – ARG Load | `Figure_S4_ARG_load.R` |
-| **Figure S5** – ARG Diversity | `Figure_S5_ARG_diversity.R` |
-| **Figure S6** – PCoA | `Figure_S6_PCoA.R` |
-
+| **Figure**  | **Table**  | **Script** |
+|------------|------------|------------|
+| **Figure 1** | - | `Figure_1_DataSummary.R` |
+| **Figure 2** | - | `Figure_2_PCoA_top5_ARG.R` |
+| **Figure 3** | - | `Figure_3_income_gender.R` |
+| **Figure 4** | - | `Figure_4_hic_region_age.R` |
+| **Figure S1** | - | `Figure_S1_S2_Usage.R` |
+| **Figure S2** | - | `Figure_S1_S2_Usage.R` |
+| **Figure S3** | - | `Figure_S3_income_women.R` |
+| **Figure S4** | - | `Figure_S4_ARG_load.R` |
+| **Figure S5** | - | `Figure_S5_ARG_diversity.R` |
+| **Figure S6** | - | `Figure_S6_PCoA.R` |
+| **Figure S7** | - | `dummy_lm_top5_AB.R` |
+| **Figure S8** | - | `dummy_lm.R` |
+| - | **Table S4** | `dummy_lm.R` |
+| - | **Table S5** | `dummy_lm.R` |
+| - | **Table S6** | `tukey_women_age_region.R` |
+| - | **Table S7** | `tukey_women_age_region.R` |
+| - | **Table S8** | `tukey_women_age_region.R` |
+| - | **Table S9** | `tukey_women_age_region.R` |
+| - | **Table S12** | `dummy_lm.R` |
+| - | **Table S13** | `dummy_lm.R` |
 ---
 
 ## Usage Instructions
