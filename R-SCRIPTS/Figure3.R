@@ -267,6 +267,83 @@ combined_table <- plot_grid(
   rel_heights = c(1, 0.1, 1)
 )
 
+# Modify the stats data frames to include a Metric column
+stats_ARG_load <- stats_ARG_load %>%
+  mutate(Metric = "ARG load")
+
+stats_ARG_diversity <- stats_ARG_diversity %>%
+  mutate(Metric = "ARG diversity")
+
+# Combine the statistics
+combined_stats <- bind_rows(stats_ARG_load, stats_ARG_diversity) %>%
+  arrange(income_group, Metric)
+
+# Format the combined table
+combined_table_df <- combined_stats %>%
+  select(Metric, income_group, n_Women, n_Men, effect_size, conf.low, conf.high, p_adj) %>%
+  rename(
+    `Metric` = Metric,
+    `Income Group` = income_group,
+    `N (Women)` = n_Women,
+    `N (Men)` = n_Men,
+    `Effect Size (r)` = effect_size,
+    `Lower 95% CI` = conf.low,
+    `Upper 95% CI` = conf.high,
+    `Adjusted p-value` = p_adj
+  ) %>%
+  mutate(
+    across(c(`Effect Size (r)`, `Lower 95% CI`, `Upper 95% CI`), ~round(.x, 3)),
+    `Adjusted p-value` = case_when(
+      `Adjusted p-value` < 0.0001 ~ "p<0.0001",
+      TRUE ~ formatC(`Adjusted p-value`, format = "f", digits = 4)
+    )
+  )
+
+# Create the table with the tag using tab_add_title
+stats_table <- ggtexttable(combined_table_df, 
+                           rows = NULL,
+                           theme = ttheme("light", 
+                                          base_size = 16, 
+                                          padding = unit(c(10, 20), "pt")
+                           )) %>%
+  tab_add_title(text = "c", 
+                size = 24, 
+                face = "bold", 
+                just = "left",
+                padding = unit(c(0, 0, 0, 4), "pt"))
+
+# Top row: combine the two violin plots side by side with tags a and b
+top_row <- plot_grid(
+  income_arg_violinplot,
+  income_shannon_violinplot,
+  labels = c("a", "b"),
+  label_size = 24,
+  ncol = 2,
+  align = 'hv'
+)
+
+# Create a thin separator
+separator <- ggdraw() + 
+  draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
+
+# Combine everything into the final figure
+final_figure <- plot_grid(
+  top_row,
+  separator,
+  stats_table,
+  ncol = 1,
+  rel_heights = c(1, 0.02, 0.8)
+)
+
+# Save the final figure
+CairoJPEG("RESULTS/FIGURES/Fig3.jpg", width = 1200, height = 900, quality = 100)
+print(final_figure)
+dev.off()
+
+
+
+###############################################################################
+
 # --------------------------
 # Arrange Plots and the Combined Table in the Final Figure
 # --------------------------
@@ -296,3 +373,4 @@ final_figure <- plot_grid(
 CairoJPEG("RESULTS/FIGURES/Fig3.jpg", width = 1200, height = 900, quality = 100)
 print(final_figure)
 dev.off()
+
