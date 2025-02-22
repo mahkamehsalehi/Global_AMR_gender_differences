@@ -13,12 +13,10 @@ library(ggthemes)
 # Data Preparation
 # ---------------------------
 # Read the filtered TSE object for plotting metadata (PCoA plot)
-tse_filtered <- readRDS("DATA/TSE_filtered.rds")
-tse_metadata <- as.data.frame(colData(tse_filtered)) %>% 
+tse <- readRDS("DATA/TSE_filtered.rds")
+tse_metadata <- as.data.frame(colData(tse)) %>% 
   filter(!is.na(income_group))
 
-# Read the main TSE object (for counts and gene classes)
-tse <- readRDS("DATA/TSE.rds")
 counts <- assay(tse)
 gene_classes <- rowData(tse)$Class
 
@@ -159,4 +157,4 @@ final_plot <- plot_grid(class_plot, pcoa_plot,
 # ---------------------------
 # Save the final plot
 # ---------------------------
-ggsave("RESULTS/FIGURES/gene_class_pcoa_normalized.png", final_plot, width = 22, height = 12, dpi = 300)
+ggsave("RESULTS/FIGURES/ww.png", final_plot, width = 22, height = 12, dpi = 300)
