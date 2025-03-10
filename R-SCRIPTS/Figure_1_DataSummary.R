@@ -10,7 +10,6 @@ library(ggpubr)
 library(cowplot)
 library(mia)
 library(miaViz)
-library(SEtools)
 
 
 # Data Loading and Preprocessing
@@ -51,7 +50,7 @@ p1 <- ggplot(df %>% filter(!is.na(sex_combined)),
 # Define Plot p2: Antibiotic Resistance Load Distribution
 library(scales)
 p2 <- ggplot(df %>% filter(!is.na(sex_combined)), 
-                   aes(x = ARG_load, fill = sex_combined)) +
+             aes(x = ARG_load, fill = sex_combined)) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
   geom_bar(position = position_dodge(), color = "black", alpha = 0.7, stat = "bin", binwidth = 0.2) +
   labs(
@@ -71,8 +70,8 @@ levels(df$World_Bank_Income_Group) <- c("High", "Upper middle", "Lower middle", 
 
 # Reorder the levels
 df$World_Bank_Income_Group<- factor(df$World_Bank_Income_Group, 
-                               levels = c("Low", "Lower middle", "Upper middle", "High"), 
-                               ordered = TRUE)
+                                    levels = c("Low", "Lower middle", "Upper middle", "High"), 
+                                    ordered = TRUE)
 
 p3 <- ggplot(df %>% filter(!is.na(World_Bank_Income_Group) & !is.na(sex_combined)), 
              aes(x = World_Bank_Income_Group, fill = sex_combined)) +
@@ -127,7 +126,7 @@ breaks_seq_custom <- c(0, 1000, 2000, 3000)
 
 # Create Plot p5: Sample Count World Map
 p5 <- 
-ggplot(data = world_data) +
+  ggplot(data = world_data) +
   geom_sf(aes(fill = count), color = "white", size = 0.2) +
   scale_fill_gradient(
     low = "lightblue",
@@ -150,17 +149,20 @@ ggplot(data = world_data) +
   )
 
 
-# Create the combined plot with tags for all panels
+# Create the combined plot
 combined_plot <- plot_grid(
-  plot_grid(p1, p2, p3, p4, ncol = 2, labels="auto"),
-  p5 + annotate("text", x=-180, y=100, label="e", size=5) + labs(x="", y=""), 
+  plot_grid(p1, p2, p3, p4, ncol = 2, labels=c("a)", "b)", "c)", "d)"), label_size = s),
+  p5 + annotate("text", x=-180, y=100, label="e)", size=5) + labs(x="", y=""), 
   ncol = 1,
   rel_heights = c(6, 6)
 )
 
-# This generates publication quality printout:
 library(Cairo)
-CairoJPEG("RESULTS/FIGURES/Fig1_datasummary.jpg", width=600, height=800, quality=100)
+
+CairoJPEG("RESULTS/FIGURES/Figure 1.jpg", 
+          width = 3000,
+          height = 3600,
+          units = "px",
+          dpi = 300)
 print(combined_plot)
 dev.off()
-

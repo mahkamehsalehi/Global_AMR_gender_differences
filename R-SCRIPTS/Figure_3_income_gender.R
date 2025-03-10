@@ -1,5 +1,5 @@
 # --------------------------
-# Load Necessary Libraries
+# Load Libraries
 # --------------------------
 library(vegan)
 library(ggpubr)
@@ -11,7 +11,9 @@ library(mia)
 library(Cairo)
 library(scales)
 library(rstatix)
+library(ggtext)
 
+set.seed(123)
 # --------------------------
 # Load and Prepare Data
 # --------------------------
@@ -23,28 +25,29 @@ filtered_metadata <- tse_metadata %>%
     category != "Infant Study", 
     geo_loc_name_country_calc != "Zimbabwe"  # To explain in the ms!
   ) %>%
+  mutate(log_ARG_load = log(ARG_load)) %>%
   drop_na(log_ARG_load, income_group)
 
 # --------------------------
-# Define Consistent Color Palette and Theme
+# Custom Theme & Colors
 # --------------------------
 gender_colors <- c("Women" = "#F8766D", "Men" = "#619CFF")
 
-custom_theme <- theme_minimal(24) +
+custom_theme <- theme_minimal(base_size = 16) +
   theme(
     axis.line = element_line(color = "black"),
     strip.background = element_rect(color = "black", size = 1),
     plot.title = element_text(hjust = 0.5),
-    axis.title = element_text(),
-    axis.text = element_text(),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
     legend.position = "none"
   )
 
 # --------------------------
-# Create Violin Plots
+# Violin Plots (Gender differences within each income group)
 # --------------------------
 
-# Violin plot for ARG Load
+# Panel a): Violin Plot for ARG Load
 income_arg_violinplot <- ggviolin(
   filtered_metadata,
   x = "gender",
@@ -60,31 +63,21 @@ income_arg_violinplot <- ggviolin(
     method = "wilcox.test",
     p.adjust.method = "BH",
     hide.ns = FALSE,
-    size = 6
+    size = 5
   ) +
   labs(
-    x = "",
+    x = NULL,
     y = expression("ARG load (log "*RPKM*")")
   ) +
-  facet_wrap(~income_group) +
-  scale_y_log10(
-    labels = trans_format("log10", math_format(10^.x))
-  ) +
-  theme_minimal() +
-  custom_theme +
-  theme(
-    axis.line = element_line(color = "black"),
-    strip.background = element_rect(color = "black", fill = "white", size = 1),
-    axis.text = element_text(size = 14),
-    axis.title.y = element_text(size = 18),
-    legend.position = "none"
-  )
+  facet_wrap(~ income_group) +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+  custom_theme
 
-# Violin plot for ARG Diversity (Shannon Index)
+# Panel b): Violin Plot for ARG Diversity
 income_shannon_violinplot <- ggviolin(
   filtered_metadata,
   x = "gender",
-  y = "shannon_diversity",
+  y = "ARG_div_shan",
   fill = "gender",
   palette = gender_colors,
   add = "boxplot",
@@ -96,33 +89,36 @@ income_shannon_violinplot <- ggviolin(
     method = "wilcox.test",
     p.adjust.method = "BH",
     hide.ns = FALSE,
-    size = 6
+    size = 5
   ) +
   labs(
-    x = "",
+    x = NULL,
     y = "ARG diversity (Shannon index)"
   ) +
-  facet_wrap(~income_group) +
+  facet_wrap(~ income_group) +
   coord_cartesian(ylim = c(0, 4)) +
-  theme_minimal() +
-  custom_theme +
-  theme(
-    axis.line = element_line(color = "black"),
-    strip.background = element_rect(color = "black", fill = "white", size = 1),
-    axis.text = element_text(size = 14),
-    axis.title.y = element_text(size = 18),
-    legend.position = "none"
-  )
+  custom_theme
+
+# Combine Panels
+top_row <- plot_grid(
+  income_arg_violinplot,
+  income_shannon_violinplot,
+  labels = c("a)", "b)"),
+  label_size = 24,
+  ncol = 2,
+  align = 'hv'
+)
 
 # --------------------------
-# Compute Statistics for ARG Load
+# Statistics: Gender differences within each income group
 # --------------------------
+
 stats_ARG_load <- filtered_metadata %>%
   group_by(income_group) %>%
   group_modify(~ {
     n_Women <- sum(.x$gender == "Women")
     n_Men   <- sum(.x$gender == "Men")
-    if(length(unique(.x$gender)) < 2) {
+    if (length(unique(.x$gender)) < 2) {
       tibble(
         n_Women = n_Women,
         n_Men = n_Men,
@@ -132,7 +128,7 @@ stats_ARG_load <- filtered_metadata %>%
         p_value = NA_real_
       )
     } else {
-      eff <- wilcox_effsize(.x, formula = ARG_load ~ gender, ci = TRUE, conf.level = 0.95)
+      eff  <- wilcox_effsize(.x, formula = ARG_load ~ gender, ci = TRUE)
       test <- wilcox_test(.x, formula = ARG_load ~ gender)
       tibble(
         n_Women = n_Women,
@@ -145,40 +141,15 @@ stats_ARG_load <- filtered_metadata %>%
     }
   }) %>%
   ungroup() %>%
+  mutate(Metric = "ARG load") %>%
   mutate(p_adj = p.adjust(p_value, method = "BH"))
 
-# Format table for ARG Load
-arg_load_table_df <- stats_ARG_load %>%
-  select(income_group, n_Women, n_Men, effect_size, conf.low, conf.high, p_adj) %>%
-  rename(
-    `Income Group` = income_group,
-    `N (Women)` = n_Women,
-    `N (Men)` = n_Men,
-    `Effect Size (r)` = effect_size,
-    `Lower 95% CI` = conf.low,
-    `Upper 95% CI` = conf.high,
-    `Adjusted p-value` = p_adj
-  ) %>%
-  mutate(
-    across(c(`Effect Size (r)`, `Lower 95% CI`, `Upper 95% CI`), ~round(.x, 3)),
-    `Adjusted p-value` = case_when(
-      `Adjusted p-value` < 0.0001 ~ "p<0.0001",
-      TRUE ~ formatC(`Adjusted p-value`, format = "f", digits = 4)
-    )
-  )
-
-arg_load_table <- ggtexttable(arg_load_table_df, rows = NULL, 
-                              theme = ttheme("light", base_size = 16))
-
-# --------------------------
-# Compute Statistics for ARG Diversity
-# --------------------------
 stats_ARG_diversity <- filtered_metadata %>%
   group_by(income_group) %>%
   group_modify(~ {
     n_Women <- sum(.x$gender == "Women")
     n_Men   <- sum(.x$gender == "Men")
-    if(length(unique(.x$gender)) < 2) {
+    if (length(unique(.x$gender)) < 2) {
       tibble(
         n_Women = n_Women,
         n_Men = n_Men,
@@ -188,8 +159,8 @@ stats_ARG_diversity <- filtered_metadata %>%
         p_value = NA_real_
       )
     } else {
-      eff <- wilcox_effsize(.x, formula = shannon_diversity ~ gender, ci = TRUE, conf.level = 0.95)
-      test <- wilcox_test(.x, formula = shannon_diversity ~ gender)
+      eff  <- wilcox_effsize(.x, formula = ARG_div_shan ~ gender, ci = TRUE)
+      test <- wilcox_test(.x, formula = ARG_div_shan ~ gender)
       tibble(
         n_Women = n_Women,
         n_Men   = n_Men,
@@ -201,95 +172,23 @@ stats_ARG_diversity <- filtered_metadata %>%
     }
   }) %>%
   ungroup() %>%
+  mutate(Metric = "ARG diversity") %>%
   mutate(p_adj = p.adjust(p_value, method = "BH"))
 
-# Format table for ARG Diversity
-arg_diversity_table_df <- stats_ARG_diversity %>%
-  select(income_group, n_Women, n_Men, effect_size, conf.low, conf.high, p_adj) %>%
-  rename(
-    `Income Group` = income_group,
-    `N (Women)` = n_Women,
-    `N (Men)` = n_Men,
-    `Effect Size (r)` = effect_size,
-    `Lower 95% CI` = conf.low,
-    `Upper 95% CI` = conf.high,
-    `Adjusted p-value` = p_adj
-  ) %>%
-  mutate(
-    across(c(`Effect Size (r)`, `Lower 95% CI`, `Upper 95% CI`), ~round(.x, 3)),
-    `Adjusted p-value` = case_when(
-      `Adjusted p-value` < 0.0001 ~ "p<0.0001",
-      TRUE ~ formatC(`Adjusted p-value`, format = "f", digits = 4)
-    )
-  )
+# Combine the two metrics
+stats_combined_gender <- bind_rows(stats_ARG_load, stats_ARG_diversity)
 
-arg_diversity_table <- ggtexttable(arg_diversity_table_df, rows = NULL, 
-                                   theme = ttheme("light", base_size = 16))
-
-# --------------------------
-# Merge the Two Tables into One Composite Table with Tags c and d
-# --------------------------
-# Create header labels for each section
-header_ARG_load <- ggdraw() + 
-  draw_label("ARG load", fontface = "bold", size = 20, hjust = 0.5)
-header_ARG_diversity <- ggdraw() + 
-  draw_label("ARG diversity", fontface = "bold", size = 20, hjust = 0.5)
-
-label_c <- ggdraw() + draw_label("c", fontface = "bold", size = 24, x = 0, hjust = 0)
-label_d <- ggdraw() + draw_label("d", fontface = "bold", size = 24, x = 0, hjust = 0)
-
-# Stack the label, header, and table for each metric vertically
-composite_ARG_load <- plot_grid(
-  label_c,
-  header_ARG_load, 
-  arg_load_table,
-  ncol = 1,
-  rel_heights = c(0.1, 0.1, 1)
-)
-composite_ARG_diversity <- plot_grid(
-  label_d,
-  header_ARG_diversity, 
-  arg_diversity_table,
-  ncol = 1,
-  rel_heights = c(0.1, 0.1, 1)
-)
-
-# Create a grey horizontal separator by specifying x and y coordinates
-separator <- ggdraw() + 
-  draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
-
-# Use plot_spacer() to add a gap between the composite tables
-combined_table <- plot_grid(
-  composite_ARG_load,
-  separator,
-  composite_ARG_diversity,
-  ncol = 1,
-  rel_heights = c(1, 0.1, 1)
-)
-
-# Modify the stats data frames to include a Metric column
-stats_ARG_load <- stats_ARG_load %>%
-  mutate(Metric = "ARG load")
-
-stats_ARG_diversity <- stats_ARG_diversity %>%
-  mutate(Metric = "ARG diversity")
-
-# Combine the statistics
-combined_stats <- bind_rows(stats_ARG_load, stats_ARG_diversity) %>%
-  arrange(income_group, Metric)
-
-# Format the combined table
-combined_table_df <- combined_stats %>%
+# Format for display
+combined_table_df_c <- stats_combined_gender %>%
   select(Metric, income_group, n_Women, n_Men, effect_size, conf.low, conf.high, p_adj) %>%
   rename(
-    `Metric` = Metric,
-    `Income Group` = income_group,
-    `N (Women)` = n_Women,
-    `N (Men)` = n_Men,
-    `Effect Size (r)` = effect_size,
-    `Lower 95% CI` = conf.low,
-    `Upper 95% CI` = conf.high,
-    `Adjusted p-value` = p_adj
+    "Income Group"     = income_group,
+    "N (Women)"        = n_Women,
+    "N (Men)"          = n_Men,
+    "Effect Size (r)"  = effect_size,
+    "Lower 95% CI"     = conf.low,
+    "Upper 95% CI"     = conf.high,
+    "Adjusted p-value" = p_adj
   ) %>%
   mutate(
     across(c(`Effect Size (r)`, `Lower 95% CI`, `Upper 95% CI`), ~round(.x, 3)),
@@ -299,78 +198,128 @@ combined_table_df <- combined_stats %>%
     )
   )
 
-# Create the table with the tag using tab_add_title
-stats_table <- ggtexttable(combined_table_df, 
-                           rows = NULL,
-                           theme = ttheme("light", 
-                                          base_size = 16, 
-                                          padding = unit(c(10, 20), "pt")
-                           )) %>%
-  tab_add_title(text = "c", 
-                size = 24, 
-                face = "bold", 
-                just = "left",
-                padding = unit(c(0, 0, 0, 4), "pt"))
-
-# Top row: combine the two violin plots side by side with tags a and b
-top_row <- plot_grid(
-  income_arg_violinplot,
-  income_shannon_violinplot,
-  labels = c("a", "b"),
-  label_size = 24,
-  ncol = 2,
-  align = 'hv'
-)
-
-# Create a thin separator
-separator <- ggdraw() + 
-  draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
-
-# Combine everything into the final figure
-final_figure <- plot_grid(
-  top_row,
-  separator,
-  stats_table,
-  ncol = 1,
-  rel_heights = c(1, 0.02, 0.8)
-)
-
-# Save the final figure
-CairoJPEG("RESULTS/FIGURES/Fig3.jpg", width = 1200, height = 900, quality = 100)
-print(final_figure)
-dev.off()
-
-
-
-###############################################################################
+# Create Panel c) table
+stats_table_c <- ggtexttable(
+  combined_table_df_c,
+  rows = NULL,
+  theme = ttheme("light", base_size = 16)
+) %>%
+  tab_add_title(
+    text = "c)",
+    size = 24,
+    face = "bold",
+    just = "left",
+    padding = unit(c(0, 0, 0, 4), "pt")
+  )
 
 # --------------------------
-# Arrange Plots and the Combined Table in the Final Figure
+# Overall Comparison: HIC vs. LMIC (Ignoring Gender) (Panel d)
 # --------------------------
 
-# Top row: combine the two violin plots side by side with tags a and b
-top_row <- plot_grid(
-  income_arg_violinplot,
-  income_shannon_violinplot,
-  labels = c("a", "b"),
-  label_size = 24,
-  ncol = 2,
-  align = 'hv'
+# Sample sizes
+n_HIC <- filtered_metadata %>% filter(income_group == "HIC") %>% nrow()
+n_LMIC <- filtered_metadata %>% filter(income_group == "LMIC") %>% nrow()
+
+# ARG Load: overall comparison
+overall_stats_ARG_load <- wilcox_effsize(
+  filtered_metadata, 
+  formula = ARG_load ~ income_group, 
+  ci = TRUE, conf.level = 0.95
+)
+overall_test_ARG_load <- wilcox_test(
+  filtered_metadata, 
+  formula = ARG_load ~ income_group
 )
 
-# Combine top row, separator, and the combined table into the final figure
+overall_stats_ARG_load_df <- tibble(
+  Metric = "ARG load",
+  `N (HIC)` = n_HIC,
+  `N (LMIC)` = n_LMIC,
+  Effect_Size = overall_stats_ARG_load$effsize,
+  Lower_95_CI = overall_stats_ARG_load$conf.low,
+  Upper_95_CI = overall_stats_ARG_load$conf.high,
+  p_value = overall_test_ARG_load$p
+) %>%
+  mutate(Adjusted_p_value = ifelse(
+    p_value < 0.0001, "p<0.0001", formatC(p_value, format = "f", digits = 4)
+  ))
+
+# ARG Diversity: overall comparison
+overall_stats_ARG_diversity <- wilcox_effsize(
+  filtered_metadata, 
+  formula = ARG_div_shan ~ income_group, 
+  ci = TRUE, conf.level = 0.95
+)
+overall_test_ARG_diversity <- wilcox_test(
+  filtered_metadata, 
+  formula = ARG_div_shan ~ income_group
+)
+
+overall_stats_ARG_diversity_df <- tibble(
+  Metric = "ARG diversity",
+  `N (HIC)` = n_HIC,
+  `N (LMIC)` = n_LMIC,
+  Effect_Size = overall_stats_ARG_diversity$effsize,
+  Lower_95_CI = overall_stats_ARG_diversity$conf.low,
+  Upper_95_CI = overall_stats_ARG_diversity$conf.high,
+  p_value = overall_test_ARG_diversity$p
+) %>%
+  mutate(Adjusted_p_value = ifelse(
+    p_value < 0.0001, "p<0.0001", formatC(p_value, format = "f", digits = 4)
+  ))
+
+
+# Combine overall stats into one table
+overall_stats_table <- bind_rows(
+  overall_stats_ARG_load_df,
+  overall_stats_ARG_diversity_df
+) %>%
+  select(Metric, `N (HIC)`, `N (LMIC)`, Effect_Size, Lower_95_CI, Upper_95_CI, Adjusted_p_value) %>%
+  rename(
+    "Effect Size (r)"   = Effect_Size,
+    "Lower 95% CI"      = Lower_95_CI,
+    "Upper 95% CI"      = Upper_95_CI,
+    "Adjusted p-value"  = Adjusted_p_value
+  ) %>%
+  mutate(across(where(is.numeric), ~round(.x, 3)))
+
+# Create Panel d) table
+stats_table_d <- ggtexttable(
+  overall_stats_table,
+  rows = NULL,
+  theme = ttheme("light", base_size = 16)
+) %>%
+  tab_add_title(
+    text = "d)",
+    size = 24,
+    face = "bold",
+    just = "left",
+    padding = unit(c(0, 0, 0, 4), "pt")
+  )
+
+# --------------------------
+# Stack Panels
+# --------------------------
+tables_stacked <- plot_grid(
+  stats_table_c,
+  stats_table_d,
+  ncol = 1,
+  rel_heights = c(1, 1)
+)
+
+# --------------------------
+# Combine Panels
+# --------------------------
 final_figure <- plot_grid(
   top_row,
-  separator,
-  combined_table,
+  tables_stacked,
   ncol = 1,
-  rel_heights = c(1, 0.05, 1)
+  rel_heights = c(1, 1.2)
 )
 
 # --------------------------
 # Save the Final Figure
 # --------------------------
-CairoJPEG("RESULTS/FIGURES/Fig3.jpg", width = 1200, height = 900, quality = 100)
+CairoJPEG("RESULTS/FIGURES/Figure 3.jpg", width = 4000, height = 3000, units = "px",dpi = 300, quality = 100)
 print(final_figure)
 dev.off()
-

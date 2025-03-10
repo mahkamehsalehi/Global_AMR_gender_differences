@@ -96,7 +96,7 @@ class_plot <- ggplot(df_bar, aes(x = reorder(gene_class, abundance), y = abundan
   labs(
     x = "Gene class",
     y = "Average abundance per sample (RPKM)",
-    tag = "a"
+    tag = "a)"
   ) +
   scale_fill_viridis_d(option = "mako") +
   theme_minimal(base_size = 20) +
@@ -111,21 +111,37 @@ class_plot <- ggplot(df_bar, aes(x = reorder(gene_class, abundance), y = abundan
     axis.ticks = element_line(color = "black"),
     axis.text = element_text(size = 20),
     axis.title = element_text(size = 22, face = "plain"),
-    plot.tag = element_text(size = 24, face = "plain"),
+    plot.tag = element_text(size = 24, face = "bold"),
     legend.position = "none"
   )
 
 # ---------------------------
-# PCoA Plot (with better spacing)
+# PCoA Plot (with text-based legend instead of symbols)
 # ---------------------------
+# Create a custom legend function that will use text descriptions instead of symbols
+custom_guide_legend <- function() {
+  guide_legend(
+    override.aes = list(
+      # Remove the points/symbols from the legend
+      shape = NA,
+      # Add text labels instead
+      label = c("Women", "Men")
+    )
+  )
+}
+
 pcoa_plot <- ggplot(tse_metadata, aes(x = PC1, y = PC2, color = gender)) +
   geom_point(size = 1, alpha = 1) +
-  scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
+  scale_color_manual(
+    values = c("Women" = "#F8766D", "Men" = "#619CFF"),
+    # Use text labels in the legend instead of symbols
+    labels = c("Women" = "Women (red points)", "Men" = "Men (blue points)")
+  ) +
   labs(
     x = "PC1 (14.95%)",
     y = "PC2 (10.34%)",
     color = "Gender",
-    tag = "b"
+    tag = "b)"
   ) +
   theme_minimal(base_size = 18) +
   theme(
@@ -148,7 +164,7 @@ library(cowplot)
 # Combine the plots
 # ---------------------------
 
-# Combine the bar plot and PCoA plot vertically
+# Combine the bar plot and PCoA plot
 final_plot <- plot_grid(class_plot, pcoa_plot, 
                         ncol = 1,
                         align = "v",
@@ -157,4 +173,4 @@ final_plot <- plot_grid(class_plot, pcoa_plot,
 # ---------------------------
 # Save the final plot
 # ---------------------------
-ggsave("RESULTS/FIGURES/ww.png", final_plot, width = 22, height = 12, dpi = 300)
+ggsave("RESULTS/FIGURES/Figure 2.png", final_plot, width = 22, height = 12, dpi = 300)

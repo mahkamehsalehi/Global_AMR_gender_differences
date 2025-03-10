@@ -10,6 +10,8 @@ library(SummarizedExperiment)
 library(dplyr)
 library(Cairo)
 
+set.seed(123)
+
 # -----------------------------
 # Data Loading and Preprocessing
 # -----------------------------
@@ -18,6 +20,7 @@ tse_metadata <- as.data.frame(colData(TSE))
 
 metadata_hic <- tse_metadata %>%
   filter(income_group == "HIC") %>%
+  mutate(log_ARG_load = log(ARG_load)) %>%
   filter(!is.na(age_category_new) & !is.na(log_ARG_load))
 
 df <- metadata_hic
@@ -205,8 +208,8 @@ header_na <- ggdraw() +
   draw_label("North America", fontface = "bold", size = 36, hjust = 0.5) +
   theme(plot.margin = margin(b = 80))
 
-label_c <- ggdraw() + draw_label("c", fontface = "bold", size = 36, x = 0.1, hjust = 0)
-label_d <- ggdraw() + draw_label("d", fontface = "bold", size = 36, x = 0.1, hjust = 0)
+label_c <- ggdraw() + draw_label("c)", fontface = "bold", size = 36, x = 0.1, hjust = 0)
+label_d <- ggdraw() + draw_label("d)", fontface = "bold", size = 36, x = 0.1, hjust = 0)
 
 # --------------------------
 # Stack the label, header, and table for each region vertically
@@ -250,7 +253,7 @@ combined_tables <- plot_grid(
 plots_combined <- plot_grid(
   ps[[1]] + theme(legend.position = "none"),
   ps[[2]] + theme(legend.position = "none"),
-  labels = c("a", "b"),
+  labels = c("a)", "b)"),
   label_size = 36,
   ncol = 2,
   align = 'hv'
@@ -277,6 +280,6 @@ final_figure <- plot_grid(
 # --------------------------
 # Save the Final Figure
 # --------------------------
-CairoJPEG("RESULTS/FIGURES/Fig4.jpg", width = 2000, height = 2000, quality = 100)
+CairoJPEG("RESULTS/FIGURES/Figure 4.jpg", width = 2000, height = 2000, quality = 100)
 print(final_figure)
 dev.off()
