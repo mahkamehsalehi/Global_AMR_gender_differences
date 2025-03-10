@@ -8,12 +8,12 @@ library(cowplot)
 library(rstatix)
 library(SummarizedExperiment)
 
+set.seed(123)
 # -----------------------------
 # Data Loading and Preprocessing
 # -----------------------------
 
 TSE <- readRDS("DATA/TSE_filtered.rds")
-
 tse_metadata <- as.data.frame(colData(TSE))
 
 metadata_hic <- tse_metadata %>%
@@ -34,7 +34,7 @@ comparisons <- list(
   c("Older Adult", "Oldest Adult")
 )
 
-age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_diversity, fill = gender)) +
+age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = ARG_div_shan, fill = gender)) +
   geom_boxplot(
     position = position_dodge(width = 0.8),
     outlier.shape = NA,
@@ -45,9 +45,7 @@ age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_diversit
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   labs(x = "Gender", y = "ARG diversity (Shannon index)") +
   stat_compare_means(
-    comparisons = list(
-      c("Women", "Men")
-    ),
+    comparisons = list(c("Women", "Men")),
     aes(label = ..p.signif..),
     method = "wilcox.test",
     p.adjust.method = "BH",
@@ -64,7 +62,7 @@ age_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender, y = shannon_diversit
     legend.position = "bottom"
   )
 
-age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = shannon_diversity, fill = gender)) +
+age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = ARG_div_shan, fill = gender)) +
   geom_boxplot(
     position = position_dodge(width = 0.8),
     outlier.shape = NA,
@@ -77,9 +75,7 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = shannon_divers
   labs(x = "Gender", y = "ARG diversity (Shannon index)") +
   theme_minimal(16) +
   stat_compare_means(
-    comparisons = list(
-      c("Women", "Men")
-    ),
+    comparisons = list(c("Women", "Men")),
     aes(label = ..p.signif..),
     method = "wilcox.test",
     p.adjust.method = "BH",
@@ -94,19 +90,21 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = shannon_divers
     panel.spacing = unit(0.5, "lines")
   )
 
-# Combine the plots and keep a single legend
+# Combine the plots and keep a single legend with tag levels as "a)", "b)", etc.
 combined_plot <- (age_arg_boxplot_hic + labs(title = "HIC")) +
   (age_arg_boxplot_lmic + labs(title = "LMIC")) +
   plot_layout(ncol = 1, heights = c(1, 1), guides = "collect") +
   plot_annotation(
     tag_levels = 'a',
+    tag_prefix = "",
+    tag_suffix = ")",
     theme = theme(
       plot.title = element_text(),
       plot.subtitle = element_text(),
       legend.position = "bottom",
       plot.tag = element_text(face = "bold", size = 18)
-  ))
-
+    )
+  )
 
 # Create headers for tables
 header_hic <- ggdraw() + 
@@ -126,9 +124,8 @@ hic_effect_sizes <- lapply(unique(metadata_hic$age_category_new), function(age) 
   hic_data <- metadata_hic %>% filter(age_category_new == age)
   
   if(nrow(hic_data) >= 2) {
-    # Use wilcox.test
-    test <- wilcox.test(shannon_diversity ~ gender, data = hic_data)
-    res <- wilcox_effsize(data = hic_data, shannon_diversity ~ gender)
+    test <- wilcox.test(ARG_div_shan ~ gender, data = hic_data)
+    res <- wilcox_effsize(data = hic_data, ARG_div_shan ~ gender)
     n_samples <- hic_data %>% group_by(gender) %>% summarise(n = n())
     
     data.frame(
@@ -146,8 +143,8 @@ lmic_effect_sizes <- lapply(unique(metadata_lmic$age_category_new), function(age
   lmic_data <- metadata_lmic %>% filter(age_category_new == age)
   
   if(nrow(lmic_data) >= 2) {
-    test <- wilcox.test(shannon_diversity ~ gender, data = lmic_data)
-    res <- wilcox_effsize(data = lmic_data, shannon_diversity ~ gender)
+    test <- wilcox.test(ARG_div_shan ~ gender, data = lmic_data)
+    res <- wilcox_effsize(data = lmic_data, ARG_div_shan ~ gender)
     n_samples <- lmic_data %>% group_by(gender) %>% summarise(n = n())
     
     data.frame(
@@ -173,8 +170,8 @@ hic_stats <- hic_effect_sizes %>%
       p_value < 0.0001 ~ "p<0.0001",
       TRUE ~ formatC(p_value, format = "f", digits = 4)
     ),
-    `Lower 95% CI` = round(effect_size - 1.96 * sqrt((1-effect_size^2)/(n_women+n_men-2)), 3),
-    `Upper 95% CI` = round(effect_size + 1.96 * sqrt((1-effect_size^2)/(n_women+n_men-2)), 3)
+    `Lower 95% CI` = round(effect_size - 1.96 * sqrt((1 - effect_size^2) / (n_women + n_men - 2)), 3),
+    `Upper 95% CI` = round(effect_size + 1.96 * sqrt((1 - effect_size^2) / (n_women + n_men - 2)), 3)
   ) %>%
   select(
     `Age Category` = age_category_new,
@@ -199,8 +196,8 @@ lmic_stats <- lmic_effect_sizes %>%
       p_value < 0.0001 ~ "p<0.0001",
       TRUE ~ formatC(p_value, format = "f", digits = 4)
     ),
-    `Lower 95% CI` = round(effect_size - 1.96 * sqrt((1-effect_size^2)/(n_women+n_men-2)), 3),
-    `Upper 95% CI` = round(effect_size + 1.96 * sqrt((1-effect_size^2)/(n_women+n_men-2)), 3)
+    `Lower 95% CI` = round(effect_size - 1.96 * sqrt((1 - effect_size^2) / (n_women + n_men - 2)), 3),
+    `Upper 95% CI` = round(effect_size + 1.96 * sqrt((1 - effect_size^2) / (n_women + n_men - 2)), 3)
   ) %>%
   select(
     `Age Category` = age_category_new,
@@ -212,7 +209,7 @@ lmic_stats <- lmic_effect_sizes %>%
     `Adjusted p-value`
   )
 
-# Create HIC table
+# Create HIC table with updated title "c)"
 hic_table <- ggtexttable(
   hic_stats,
   rows = NULL,
@@ -220,13 +217,13 @@ hic_table <- ggtexttable(
                  base_size = 16,
                  padding = unit(c(10, 20), "pt"))
 ) %>%
-  tab_add_title(text = "c", 
+  tab_add_title(text = "c)", 
                 face = "bold", 
                 size = 18, 
                 just = "left",
                 padding = unit(c(0, 0, 0, 4), "pt"))
 
-# Create LMIC table
+# Create LMIC table with updated title "d)"
 lmic_table <- ggtexttable(
   lmic_stats,
   rows = NULL,
@@ -234,7 +231,7 @@ lmic_table <- ggtexttable(
                  base_size = 16,
                  padding = unit(c(10, 20), "pt"))
 ) %>%
-  tab_add_title(text = "d", 
+  tab_add_title(text = "d)", 
                 face = "bold", 
                 size = 18, 
                 just = "left",
@@ -256,9 +253,8 @@ final_plot <- plot_grid(
 )
 
 # Save the final plot
-ggsave("RESULTS/FIGURES/ARG_diversity_income.jpg", 
+ggsave("RESULTS/FIGURES/Supplementary Figure 7.jpg", 
        final_plot, 
        width = 12, 
        height = 25,
-       dpi = 300)
-
+       dpi = 500)
