@@ -6,6 +6,7 @@ library(tidyverse)
 library(rstatix)
 library(cowplot)
 
+set.seed(123)
 # ----------------------------------------------------------------------------------
 # Load and preprocess data
 # ----------------------------------------------------------------------------------
@@ -52,6 +53,7 @@ usage_filtered_metadata <- tse_metadata %>%
     )
   ) %>%
   mutate(Usage_group = factor(Usage_group, levels = c("High", "Low"))) %>%
+  mutate(log_ARG_load = log(ARG_load)) %>%
   drop_na(gender, log_ARG_load, Usage_group, income_group)
 
 # Subset the data based on income group
@@ -109,7 +111,7 @@ usage_arg_boxplot_hic <- ggplot(metadata_hic, aes(x = gender,
 # -----------------------
 usage_shannon_boxplot_hic <- ggplot(metadata_hic, 
                                     aes(x = gender, 
-                                        y = shannon_diversity, 
+                                        y = ARG_div_shan, 
                                         fill = gender)) +
   geom_boxplot(position = position_dodge(width = 0.8), 
                outlier.shape = NA, 
@@ -122,7 +124,7 @@ usage_shannon_boxplot_hic <- ggplot(metadata_hic,
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   # Wilcoxon test for Shannon diversity between genders
-  stat_compare_means(aes(x = gender, y = shannon_diversity),
+  stat_compare_means(aes(x = gender, y = ARG_div_shan),
                      comparisons = list(c("Women", "Men")), 
                      label = "p.format", 
                      method = "wilcox.test", 
@@ -178,7 +180,7 @@ usage_arg_boxplot_female_hic <- ggplot(metadata_hic %>% filter(gender == "Women"
 # Shannon diversity by usage for women only (HIC)
 # -----------------------
 usage_shannon_boxplot_female_hic <- ggplot(metadata_hic %>% filter(gender == "Women"),
-                                           aes(x = Usage_group, y = shannon_diversity, fill = "#F8766D")) +
+                                           aes(x = Usage_group, y = ARG_div_shan, fill = "#F8766D")) +
   geom_boxplot(position = position_dodge(width = 0.8), 
                outlier.shape = NA, 
                width = 0.6, 
@@ -246,7 +248,7 @@ usage_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender,
 # -----------------------
 usage_shannon_boxplot_lmic <- ggplot(metadata_lmic, 
                                      aes(x = gender, 
-                                         y = shannon_diversity, 
+                                         y = ARG_div_shan, 
                                          fill = gender)) +
   geom_boxplot(position = position_dodge(width = 0.8), 
                outlier.shape = NA, 
@@ -258,7 +260,7 @@ usage_shannon_boxplot_lmic <- ggplot(metadata_lmic,
        title = "LMICs") +
   scale_fill_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
   scale_color_manual(values = c("Women" = "#F8766D", "Men" = "#619CFF")) +
-  stat_compare_means(aes(x = gender, y = shannon_diversity),
+  stat_compare_means(aes(x = gender, y = ARG_div_shan),
                      comparisons = list(c("Women", "Men")), 
                      label = "p.format", 
                      method = "wilcox.test", 
@@ -313,7 +315,7 @@ usage_arg_boxplot_female_lmic <- ggplot(metadata_lmic %>% filter(gender == "Wome
 # Shannon diversity by usage for women only (LMIC)
 # -----------------------
 usage_shannon_boxplot_female_lmic <- ggplot(metadata_lmic %>% filter(gender == "Women"),
-                                            aes(x = Usage_group, y = shannon_diversity, fill = "#F8766D")) +
+                                            aes(x = Usage_group, y = ARG_div_shan, fill = "#F8766D")) +
   geom_boxplot(position = position_dodge(width = 0.8), 
                outlier.shape = NA, 
                width = 0.6, 
@@ -361,10 +363,10 @@ calc_usage_stats <- function(data, variable, group) {
     test <- wilcox.test(ARG_load ~ Usage_group, data = data)
   } else {
     eff <- wilcox_effsize(data = data, 
-                          shannon_diversity ~ Usage_group, 
+                          ARG_div_shan ~ Usage_group, 
                           ci = TRUE, 
                           conf.level = 0.95)
-    test <- wilcox.test(shannon_diversity ~ Usage_group, data = data)
+    test <- wilcox.test(ARG_div_shan ~ Usage_group, data = data)
   }
   
   # Get adjusted p-value
@@ -406,10 +408,10 @@ calc_gender_stats <- function(data, variable, group, usage_group) {
     test <- wilcox.test(ARG_load ~ gender, data = filtered_data)
   } else {
     eff <- wilcox_effsize(data = filtered_data, 
-                          shannon_diversity ~ gender, 
+                          ARG_div_shan ~ gender, 
                           ci = TRUE, 
                           conf.level = 0.95)
-    test <- wilcox.test(shannon_diversity ~ gender, data = filtered_data)
+    test <- wilcox.test(ARG_div_shan ~ gender, data = filtered_data)
   }
   
   # Get adjusted p-value
@@ -449,16 +451,16 @@ arg_stats_complete <- rbind(
 # Calculate all statistics for Shannon diversity
 shannon_stats_complete <- rbind(
   # Usage comparisons
-  calc_usage_stats(metadata_hic, "shannon_diversity", "HICs"),
-  calc_usage_stats(metadata_lmic, "shannon_diversity", "LMICs"),
-  calc_usage_stats(metadata_hic %>% filter(gender == "Women"), "shannon_diversity", "Women in HICs"),
-  calc_usage_stats(metadata_lmic %>% filter(gender == "Women"), "shannon_diversity", "Women in LMICs"),
+  calc_usage_stats(metadata_hic, "ARG_div_shan", "HICs"),
+  calc_usage_stats(metadata_lmic, "ARG_div_shan", "LMICs"),
+  calc_usage_stats(metadata_hic %>% filter(gender == "Women"), "ARG_div_shan", "Women in HICs"),
+  calc_usage_stats(metadata_lmic %>% filter(gender == "Women"), "ARG_div_shan", "Women in LMICs"),
   
   # Gender comparisons
-  calc_gender_stats(metadata_hic, "shannon_diversity", "HICs", "High"),
-  calc_gender_stats(metadata_hic, "shannon_diversity", "HICs", "Low"),
-  calc_gender_stats(metadata_lmic, "shannon_diversity", "LMICs", "High"),
-  calc_gender_stats(metadata_lmic, "shannon_diversity", "LMICs", "Low")
+  calc_gender_stats(metadata_hic, "ARG_div_shan", "HICs", "High"),
+  calc_gender_stats(metadata_hic, "ARG_div_shan", "HICs", "Low"),
+  calc_gender_stats(metadata_lmic, "ARG_div_shan", "LMICs", "High"),
+  calc_gender_stats(metadata_lmic, "ARG_div_shan", "LMICs", "Low")
 )
 
 # Update the table creation code
@@ -468,7 +470,7 @@ arg_stats_table <- ggtexttable(arg_stats_complete,
                                               base_size = 16, 
                                               padding = unit(c(10, 20), "pt")
                                )) %>%
-  tab_add_title(text = "e", 
+  tab_add_title(text = "e)", 
                 size = 18, 
                 face = "bold", 
                 just = "left",
@@ -480,7 +482,7 @@ shannon_stats_table <- ggtexttable(shannon_stats_complete,
                                                   base_size = 16, 
                                                   padding = unit(c(10, 20), "pt")
                                    )) %>%
-  tab_add_title(text = "e", 
+  tab_add_title(text = "e)", 
                 size = 18, 
                 face = "bold", 
                 just = "left",
@@ -495,7 +497,7 @@ shannon_stats_table <- ggtexttable(shannon_stats_complete,
 grid_arg <- plot_grid(
   usage_arg_boxplot_hic, usage_arg_boxplot_lmic,
   usage_arg_boxplot_female_hic, usage_arg_boxplot_female_lmic,
-  labels = c("a", "b", "c", "d"),
+  labels = c("a)", "b)", "c)", "d)"),
   label_fontface = "bold",
   label_size = 18,
   ncol = 2
@@ -518,7 +520,7 @@ final_figure_arg_cow <- plot_grid(
 )
 
 # Save the final ARG load figure
-ggsave("RESULTS/FIGURES/usage_ARG_load.png", 
+ggsave("RESULTS/FIGURES/Supplementary Figure 3.png", 
        final_figure_arg_cow, 
        width = 15, 
        height = 16,
@@ -530,7 +532,7 @@ ggsave("RESULTS/FIGURES/usage_ARG_load.png",
 grid_shannon <- plot_grid(
   usage_shannon_boxplot_hic, usage_shannon_boxplot_lmic,
   usage_shannon_boxplot_female_hic, usage_shannon_boxplot_female_lmic,
-  labels = c("a", "b", "c", "d"),
+  labels = c("a)", "b)", "c)", "d)"),
   label_fontface = "bold",
   label_size = 18,
   ncol = 2
@@ -553,7 +555,7 @@ final_figure_shannon_cow <- plot_grid(
 )
 
 # Save the final Shannon diversity figure
-ggsave("RESULTS/FIGURES/usage__ARG_diversity.png", 
+ggsave("RESULTS/FIGURES/Supplementary Figure 4.png", 
        final_figure_shannon_cow, 
        width = 15, 
        height = 16,

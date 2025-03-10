@@ -9,6 +9,8 @@ library(mia)
 library(scales)
 library(rstatix)
 
+set.seed(123)
+
 # Data Loading and Processing
 TSE <- readRDS("DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
@@ -18,6 +20,7 @@ filtered_metadata <- tse_metadata %>%
     geo_loc_name_country_calc != "Zimbabwe"
   )
 filtered_metadata <- filtered_metadata %>%
+  mutate(log_ARG_load = log(ARG_load)) %>%
   drop_na(log_ARG_load, income_group)
 filtered_metadata_no_outliers <- filtered_metadata
 filtered_metadata_female_no_outliers <- filtered_metadata_no_outliers %>%
@@ -59,7 +62,7 @@ income_arg_violin_female <- ggplot(filtered_metadata_female_no_outliers,
 # Create violin plot for Shannon diversity
 income_shannon_violin_female <- ggplot(filtered_metadata_female_no_outliers, 
                                        aes(x = income_group, 
-                                           y = shannon_diversity, 
+                                           y = ARG_div_shan, 
                                            fill = income_group)) +
   geom_violin(trim = FALSE, alpha = 1, color = "black") +
   geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
@@ -94,10 +97,10 @@ calc_stats <- function(data, variable) {
     test <- wilcox.test(ARG_load ~ income_group, data = data)
   } else {
     eff <- wilcox_effsize(data = data, 
-                          shannon_diversity ~ income_group, 
+                          ARG_div_shan ~ income_group, 
                           ci = TRUE, 
                           conf.level = 0.95)
-    test <- wilcox.test(shannon_diversity ~ income_group, data = data)
+    test <- wilcox.test(ARG_div_shan ~ income_group, data = data)
   }
   
   # Create results with check.names=FALSE to preserve parentheses
@@ -120,9 +123,10 @@ calc_stats <- function(data, variable) {
   
   return(results)
 }
+
 # Calculate statistics for both metrics
 arg_stats <- calc_stats(filtered_metadata_female_no_outliers, "ARG_load")
-shannon_stats <- calc_stats(filtered_metadata_female_no_outliers, "shannon_diversity")
+shannon_stats <- calc_stats(filtered_metadata_female_no_outliers, "ARG_div_shan")
 
 # Combine results
 combined_stats <- rbind(arg_stats, shannon_stats)
@@ -133,7 +137,7 @@ stats_table <- ggtexttable(combined_stats,
                            theme = ttheme("light", 
                                           base_size = 16, 
                                           padding = unit(c(10, 20), "pt"))) %>%
-  tab_add_title(text = "c", size = 18, face = "bold", just = "left", 
+  tab_add_title(text = "c)", size = 18, face = "bold", just = "left", 
                 padding = unit(c(0, 0, 0, 4), "pt"))
 
 
@@ -143,14 +147,14 @@ stats_table <- ggtexttable(combined_stats,
                            theme = ttheme("light", 
                                           base_size = 16, 
                                           padding = unit(c(10, 20), "pt"))) %>%
-  tab_add_title(text = "c", size = 18, face = "bold", just = "left", 
+  tab_add_title(text = "c)", size = 18, face = "bold", just = "left", 
                 padding = unit(c(0, 0, 0, 4), "pt"))
 
 # Combine violin plots (panels a and b)
 combined_figure_income_female <- plot_grid(
   income_arg_violin_female + custom_theme,
   income_shannon_violin_female + custom_theme,
-  labels = c('a', 'b'),
+  labels = c('a)', 'b)'),
   label_size = 20,
   ncol = 2,
   align = 'hv',
@@ -169,7 +173,7 @@ final_figure <- combined_figure_income_female /
   plot_layout(heights = c(2, 0.01, NA))
 
 # Save final figure
-ggsave("RESULTS/FIGURES/income_panel_with_stats.jpg", 
+ggsave("RESULTS/FIGURES/Supplementary Figure 5.jpg", 
        final_figure, 
        width = 12, 
        height = 8, 
