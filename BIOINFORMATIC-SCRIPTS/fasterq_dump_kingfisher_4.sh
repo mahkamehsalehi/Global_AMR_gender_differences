@@ -69,10 +69,10 @@ process_accession() {
 
 
     # Run process_accession function in parallel for each accession
-    mkdir /scratch/project_2008149/PROJECT_WORKSPACE/workflow/$SLURM_JOBID
-    export TMPDIR=/scratch/project_2008149/PROJECT_WORKSPACE/workflow/$SLURM_JOBID
+    mkdir /$SLURM_JOBID
+    export TMPDIR=/$SLURM_JOBID
     cat "$batch_file" | parallel -j 10 process_accession
-    rm -rf /scratch/project_2008149/PROJECT_WORKSPACE/workflow/$SLURM_JOBID 
+    rm -rf /$SLURM_JOBID 
 
     # Cleanup the batch log directory
     rmdir "$batch_log_dir"
@@ -104,15 +104,15 @@ start_index=$(( (batch_index - 1) * batch_size + 1 ))
 end_index=$(( start_index + batch_size - 1 ))
 
 # Create a temporary directory for the batch
-batch_log_dir="/scratch/project_2008149/PROJECT_WORKSPACE/workflow/batch_logs_$batch_index"
+batch_log_dir="batch_logs_$batch_index"
 mkdir "$batch_log_dir" || { echo "Failed to create batch log directory"; exit 1; }
 
 # Create a temporary file for the batch accessions
-batch_file="/scratch/project_2008149/PROJECT_WORKSPACE/workflow/batch_$batch_index.txt"
+batch_file="/batch_$batch_index.txt"
 sed -n "${start_index},${end_index}p" "$accessions_file" > "$batch_file"
 
 # Define the completed list file
-completed_list="/scratch/project_2008149/PROJECT_WORKSPACE/workflow/completed_list.txt"
+completed_list="/completed_list.txt"
 
 # Process the batch
 process_batch "$batch_file" "$batch_log_dir" "$completed_list"

@@ -10,13 +10,13 @@ rule kma:
     output:
         "RESULTS/{accession}_ARGs_90.mapstat"
     params:
-        ref="/scratch/project_2008149/DATABASES/resfinder_db/all.fsa"
+        ref="/DATABASES/resfinder_db/all.fsa"
     resources:
         mem_mb=200,
         tmpdir="./tmp"
     shell:
         """
-        /projappl/project_2008149/kma/kma -i {input} -o RESULTS/{wildcards.accession}_ARGs_90 -t_db {params.ref} -nc -na -nf -ef -ID 90 -ml 60
+        /kma/kma -i {input} -o RESULTS/{wildcards.accession}_ARGs_90 -t_db {params.ref} -nc -na -nf -ef -ID 90 -ml 60
         """
 rule kma_80:
     input:
@@ -24,11 +24,11 @@ rule kma_80:
     output:
         "RESULTS/{accession}_ARGs_80.mapstat"
     params:
-        ref="/scratch/project_2008149/DATABASES/resfinder_db/all.fsa"
+        ref="/DATABASES/resfinder_db/all.fsa"
     resources:
         mem_mb=200,
         tmpdir="./tmp"
     shell:
        """
-       /projappl/project_2008149/kma/kma -i {input} -o RESULTS/{wildcards.accession}_ARGs_80 -t_db {params.ref} -nc -na -nf -ef -1t1 -nc -na -nf -ef -ID 80 -ml 60
+       /kma/kma -i {input} -o RESULTS/{wildcards.accession}_ARGs_80 -t_db {params.ref} -nc -na -nf -ef -1t1 -nc -na -nf -ef -ID 80 -ml 60
        """

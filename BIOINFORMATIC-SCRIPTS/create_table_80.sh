@@ -1,5 +1,5 @@
 #!/bin/bash
-grep '>' /scratch/project_2008149/DATABASES/resfinder_db/all.fsa | sed 's/>//g' | sort > all_resfinder_genenames
+grep '>' /DATABASES/resfinder_db/all.fsa | sed 's/>//g' | sort > all_resfinder_genenames
 while read i
 do
 	name=($i)
