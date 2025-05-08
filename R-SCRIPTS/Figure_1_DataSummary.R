@@ -10,10 +10,12 @@ library(ggpubr)
 library(cowplot)
 library(mia)
 library(miaViz)
+library(Cairo)
+library(scales)
 
 
 # Data Loading and Preprocessing
-tse <- readRDS("DATA/TSE.rds")
+tse <- readRDS("../DATA/TSE.rds")
 df <- as.data.frame(colData(tse)) %>%
   mutate(log_ARG_load = log(ARG_load))
 
@@ -22,7 +24,7 @@ df$sex_combined <- recode(df$sex_combined, "male" = "Men", "female" = "Women")
 df$sex_combined <- factor(df$sex_combined, levels = c("Women", "Men"))
 
 # Define custom plot theme
-s <- 14 # scale for the figure size definitions
+s <- 20 # scale for the figure size definitions
 common_theme <- theme_classic(base_size = s) +
   theme(
     plot.title = element_text(face = "bold", size = s, hjust = 0.5),
@@ -34,7 +36,10 @@ common_theme <- theme_classic(base_size = s) +
     strip.text = element_text(size = s, face = "bold"),
   )
 
+# ---------------------------
 # Define Plot p1: Host Age Distribution by Gender
+# ---------------------------
+
 p1 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = host_age_years, fill = sex_combined)) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
@@ -47,8 +52,9 @@ p1 <- ggplot(df %>% filter(!is.na(sex_combined)),
   common_theme
 
 
+# ---------------------------
 # Define Plot p2: Antibiotic Resistance Load Distribution
-library(scales)
+# ---------------------------
 p2 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = ARG_load, fill = sex_combined)) +
   scale_fill_manual(values = c("Women" = "#f03b20", "Men" = "#3182bd")) +
@@ -63,7 +69,9 @@ p2 <- ggplot(df %>% filter(!is.na(sex_combined)),
                      labels=trans_format("log10", math_format(10^.x))) +
   common_theme
 
+# ---------------------------
 # Define Plot p3: World Bank Income Group Distribution
+# ---------------------------
 
 # Rename the levels
 levels(df$World_Bank_Income_Group) <- c("High", "Upper middle", "Lower middle", "Low")
@@ -86,8 +94,10 @@ p3 <- ggplot(df %>% filter(!is.na(World_Bank_Income_Group) & !is.na(sex_combined
   common_theme 
 
 
-
+# ---------------------------
 # Define Plot p4: Antibiotic Usage Distribution
+# ---------------------------
+
 p4 <- ggplot(df %>% filter(!is.na(sex_combined)), 
              aes(x = Usage, fill = sex_combined)) +
   geom_histogram(binwidth = 1, position = position_dodge(), color = "black", alpha = 0.7) +
@@ -99,8 +109,10 @@ p4 <- ggplot(df %>% filter(!is.na(sex_combined)),
   ) +
   common_theme
 
-
+# ---------------------------
 # Define Plot p5: Number of Samples per Country (World Map)
+# ---------------------------
+
 # Filter Data
 df_filtered <- df %>% 
   filter(geo_loc_name_country_calc != "uncalculated", 
@@ -144,12 +156,12 @@ p5 <-
     legend.position = "right",
     legend.key.width = unit(0.3, "cm"),
     legend.key.height = unit(0.5, "cm"),
-    legend.title = element_text(size = 12),
-    legend.text = element_text(size = 10)
+    legend.title = element_text(size = 20),
+    legend.text = element_text(size = 18)
   )
 
 
-# Create the combined plot
+# Create the combined plot with tags for all panels in a), b), c) format
 combined_plot <- plot_grid(
   plot_grid(p1, p2, p3, p4, ncol = 2, labels=c("a)", "b)", "c)", "d)"), label_size = s),
   p5 + annotate("text", x=-180, y=100, label="e)", size=5) + labs(x="", y=""), 
@@ -157,9 +169,8 @@ combined_plot <- plot_grid(
   rel_heights = c(6, 6)
 )
 
-library(Cairo)
 
-CairoJPEG("RESULTS/FIGURES/Figure 1.jpg", 
+CairoJPEG("../RESULTS/FIGURES/Fig1_datasummary11.jpg", 
           width = 3000,
           height = 3600,
           units = "px",
