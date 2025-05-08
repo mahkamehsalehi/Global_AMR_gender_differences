@@ -12,8 +12,8 @@ library(ggthemes)
 # ---------------------------
 # Data Preparation
 # ---------------------------
-# Read the filtered TSE object for plotting metadata (PCoA plot)
-tse <- readRDS("DATA/TSE_filtered.rds")
+
+tse <- readRDS("../DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(tse)) %>% 
   filter(!is.na(income_group))
 
@@ -75,7 +75,7 @@ for (sex in c("Men", "Women")) {
       income = income,
       gene_class = names(class_totals),
       abundance = as.numeric(class_totals),
-      n_samples = n_samples  # Store sample size for reference
+      n_samples = n_samples
     )
     
     results[[paste(sex, income, sep = "_")]] <- df_temp
@@ -116,15 +116,13 @@ class_plot <- ggplot(df_bar, aes(x = reorder(gene_class, abundance), y = abundan
   )
 
 # ---------------------------
-# PCoA Plot (with text-based legend instead of symbols)
+# PCoA Plot
 # ---------------------------
-# Create a custom legend function that will use text descriptions instead of symbols
+# Create a custom legend function
 custom_guide_legend <- function() {
   guide_legend(
     override.aes = list(
-      # Remove the points/symbols from the legend
       shape = NA,
-      # Add text labels instead
       label = c("Women", "Men")
     )
   )
@@ -134,7 +132,6 @@ pcoa_plot <- ggplot(tse_metadata, aes(x = PC1, y = PC2, color = gender)) +
   geom_point(size = 1, alpha = 1) +
   scale_color_manual(
     values = c("Women" = "#F8766D", "Men" = "#619CFF"),
-    # Use text labels in the legend instead of symbols
     labels = c("Women" = "Women (red points)", "Men" = "Men (blue points)")
   ) +
   labs(
@@ -173,4 +170,4 @@ final_plot <- plot_grid(class_plot, pcoa_plot,
 # ---------------------------
 # Save the final plot
 # ---------------------------
-ggsave("RESULTS/FIGURES/Figure 2.png", final_plot, width = 22, height = 12, dpi = 300)
+ggsave("../RESULTS/FIGURES/Figure 2.png", final_plot, width = 22, height = 12, dpi = 300)

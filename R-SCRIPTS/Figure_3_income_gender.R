@@ -17,13 +17,13 @@ set.seed(123)
 # --------------------------
 # Load and Prepare Data
 # --------------------------
-TSE <- readRDS("DATA/TSE_filtered.rds")
+TSE <- readRDS("../DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
 
 filtered_metadata <- tse_metadata %>%
   filter(
     category != "Infant Study", 
-    geo_loc_name_country_calc != "Zimbabwe"  # To explain in the ms!
+    geo_loc_name_country_calc != "Zimbabwe"
   ) %>%
   mutate(log_ARG_load = log(ARG_load)) %>%
   drop_na(log_ARG_load, income_group)
@@ -320,6 +320,6 @@ final_figure <- plot_grid(
 # --------------------------
 # Save the Final Figure
 # --------------------------
-CairoJPEG("RESULTS/FIGURES/Figure 3.jpg", width = 4000, height = 3000, units = "px",dpi = 300, quality = 100)
+CairoJPEG("../RESULTS/FIGURES/Figure 3.jpg", width = 4000, height = 3000, units = "px",dpi = 300, quality = 100)
 print(final_figure)
 dev.off()
