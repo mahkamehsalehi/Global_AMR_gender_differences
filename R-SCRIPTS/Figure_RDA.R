@@ -13,7 +13,7 @@ devtools::load_all("~/Rpackages/microbiome/miaverse/miaViz")
 # Data Preparation
 # ---------------------------
 
-tse <- readRDS("DATA/TSE_filtered.rds")
+tse <- readRDS("../DATA/TSE_filtered.rds")
 
 # Prevalent features only (to speed up the analyses)
 altExp(tse, "Prevalent") <- subsetByPrevalent(tse, assay.type="relabundance", detection=0, prevalence=1/100)
