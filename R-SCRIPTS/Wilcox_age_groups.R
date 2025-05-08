@@ -1,14 +1,14 @@
 library(dplyr)
 library(rstatix)
-
+library(writexl)
 
 # Read in the TSE object
-tse <- readRDS("DATA/TSE_filtered.rds")
+tse <- readRDS("../DATA/TSE_filtered.rds")
 df <- as.data.frame(colData(tse))
 
-# Ensure age_category_new is a factor
+# Ensure age_category is a factor
 df <- df %>%
-  mutate(age_category_new = as.factor(age_category_new))
+  mutate(age_category = as.factor(age_category))
 
 # Split the data by gender
 df_split <- split(df, df$gender)
@@ -23,7 +23,7 @@ for (gender in names(df_split)) {
   # Perform pairwise Wilcoxon tests
   results <- df_gender %>%
     pairwise_wilcox_test(
-      log10_ARG_load ~ age_category_new,  # Changed to age_category_new
+      log10_ARG_load ~ age_category,
       p.adjust.method = "BH"
     ) %>%
     
@@ -41,8 +41,8 @@ for (gender in names(df_split)) {
     # Calculate effect direction
     rowwise() %>%
     mutate(
-      Median1 = median(df_gender$ARG_load[df_gender$age_category_new == group1], na.rm = TRUE),
-      Median2 = median(df_gender$ARG_load[df_gender$age_category_new == group2], na.rm = TRUE),
+      Median1 = median(df_gender$ARG_load[df_gender$age_category == group1], na.rm = TRUE),
+      Median2 = median(df_gender$ARG_load[df_gender$age_category == group2], na.rm = TRUE),
       Effect_Direction = if_else(Median1 > Median2, paste(group1, ">", group2), paste(group2, ">", group1))
     ) %>%
     ungroup()
@@ -57,10 +57,8 @@ final_results <- bind_rows(results_list, .id = "gender")
 # View the results for each gender
 final_results
 
-# Library
-library(writexl)
 # Save the final_results as an Excel file
-write_xlsx(final_results, path = "RESULTS/Wilcox_agegroups.xlsx")
+write_xlsx(final_results, path = "../RESULTS/Wilcox_agegroups.xlsx")
 
 
 
@@ -76,7 +74,7 @@ for (gender in names(df_split)) {
   # Perform pairwise Wilcoxon tests
   results <- df_gender %>%
     pairwise_wilcox_test(
-      shannon_diversity ~ age_category_new,  # Changed to age_category_new
+      shannon_diversity ~ age_category,  # Changed to age_category
       p.adjust.method = "BH"
     ) %>%
     
@@ -94,8 +92,8 @@ for (gender in names(df_split)) {
     # Calculate effect direction
     rowwise() %>%
     mutate(
-      Median1 = median(df_gender$shannon_diversity[df_gender$age_category_new == group1], na.rm = TRUE),
-      Median2 = median(df_gender$shannon_diversity[df_gender$age_category_new == group2], na.rm = TRUE),
+      Median1 = median(df_gender$shannon_diversity[df_gender$age_category == group1], na.rm = TRUE),
+      Median2 = median(df_gender$shannon_diversity[df_gender$age_category == group2], na.rm = TRUE),
       Effect_Direction = if_else(Median1 > Median2, paste(group1, ">", group2), paste(group2, ">", group1))
     ) %>%
     ungroup()
@@ -110,9 +108,7 @@ final_results <- bind_rows(results_list, .id = "gender")
 # View the results for each gender
 final_results
 
-# Library
-library(writexl)
 # Save the final_results as an Excel file
-write_xlsx(final_results, path = "RESULTS/Wilcox_agegroups_Shannon.xlsx")
+write_xlsx(final_results, path = "../RESULTS/Wilcox_agegroups_Shannon.xlsx")
 
 

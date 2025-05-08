@@ -16,7 +16,7 @@ library(TreeSummarizedExperiment)
 
 
 # Get data in adult_metadata object
-source("R-SCRIPTS/prepare_data_for_lm_analysis.R")
+source("../R-SCRIPTS/prepare_data_for_lm_analysis.R")
 
 ## Fit ****************************** ####
 # Dummy-encoded linear models
@@ -83,7 +83,7 @@ for(r in responses) {     # Loop over responses
 }
 
 # saveRDS(object = fit_list, file = "RESULTS/FITS/dummy_lm_fit_TOP5_ABs.RDS")
-fit_list <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_TOP5_ABs.RDS")
+fit_list <- readRDS(file = "../RESULTS/FITS/dummy_lm_fit_TOP5_ABs.RDS")
 
 
 ## Results ************************** ####
@@ -186,7 +186,7 @@ p <- full_summary %>%
 
 p
 
-png("RESULTS/FIGURES/SFig_lm_top5_AB_load.png",
+png("../RESULTS/FIGURES/SFig_lm_top5_AB_load.png",
     units = "in",
     res = 500,
     height = 13,
@@ -214,6 +214,6 @@ comparison_table$`Q97.5` <- round(comparison_table$`Q97.5`, 3)
 comparison_table <- comparison_table %>% 
   select(-c(Significant))
 
-write.csv(comparison_table, "RESULTS/TABLES/lm_TOP5_AB_comparison.csv")
+write.csv(comparison_table, "../RESULTS/TABLES/lm_TOP5_AB_comparison.csv")
 
 

@@ -4,7 +4,7 @@ library(nlme)
 library(readr)
 
 # Read TSE
-# TSE <- readRDS("DATA/TSE.rds")
+# TSE <- readRDS("../DATA/TSE.rds")
 
 # Read TSE metadata
 df <- TSE %>% colData() %>% as.data.frame()
@@ -13,7 +13,7 @@ df <- TSE %>% colData() %>% as.data.frame()
 df$log10_ARG_load <- log10(df$ARG_load)
 
 # Load country level-data
-country_level_data <- read_csv("DATA/data.csv") %>%
+country_level_data <- read_csv("../DATA/data.csv") %>%
   .[, -c(20:24)] %>%
   dplyr::rename(geo_loc_name_country_calc = Country)
 

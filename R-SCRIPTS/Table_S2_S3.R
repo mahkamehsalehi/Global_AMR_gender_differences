@@ -1,7 +1,7 @@
 library(mia)
 library(tidyverse)
 
-tse <- readRDS("DATA/TSE_filtered.rds")
+tse <- readRDS("../DATA/TSE_filtered.rds")
 df <- as.data.frame(colData(tse))
 
 

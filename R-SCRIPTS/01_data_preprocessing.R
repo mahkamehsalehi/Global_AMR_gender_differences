@@ -19,22 +19,22 @@ set.seed(252452)
 # setwd("/PATH/TO/Global_AMR/")
 
 # Source functions
-source("R-SCRIPTS/00_functions.R")
+source("../R-SCRIPTS/00_functions.R")
 
 ############################################################################
 ## 1) Load data
 ############################################################################
 
-gene_expression_data_80 <- fread("DATA/ALL_mapstat_80_mat.txt", 
+gene_expression_data_80 <- fread("../DATA/ALL_mapstat_80_mat.txt", 
                                  header = TRUE, sep = "\t")
-resfinder_phenotypes    <- fread("DATA/resfinder_phenotypes-pjji7t1qo3nedped5943f1c1wy.txt", 
+resfinder_phenotypes    <- fread("../DATA/resfinder_phenotypes-pjji7t1qo3nedped5943f1c1wy.txt", 
                                  header = TRUE, sep = "\t", fill = TRUE)
-gene_lengths            <- fread("DATA/gene_length.csv", header = TRUE)
-metadata                <- fread("DATA/PROCESSED/Sra_metadata_processed.csv", 
+gene_lengths            <- fread("../DATA/gene_length.csv", header = TRUE)
+metadata                <- fread("../DATA/PROCESSED/Sra_metadata_processed.csv", 
                                  header = TRUE, sep = ",")
 
 # Create gender and age columns for metadata
-source("R-SCRIPTS/metadata_processing_sex.R")
+source("../R-SCRIPTS/metadata_processing_sex.R")
 
 # Remove jattr from metadata before merging
 metadata <- metadata %>%
@@ -184,7 +184,7 @@ tree_summarized_experiment <- TreeSummarizedExperiment(
 )
 
 # Save the TSE object
-saveRDS(tree_summarized_experiment, file="DATA/TSE.rds")
+saveRDS(tree_summarized_experiment, file="../DATA/TSE.rds")
 
 rm(list  = ls())
 
@@ -192,7 +192,7 @@ rm(list  = ls())
 ## 9) Reload the TSE and filter
 ############################################################################
 
-TSE <- readRDS("DATA/TSE.rds")
+TSE <- readRDS("../DATA/TSE.rds")
 
 ## --- Filtering: remove samples with all-zero or NA counts
 col_sums       <- colSums(assay(TSE), na.rm = FALSE)
@@ -212,7 +212,7 @@ TSE <- mia::addAlpha(TSE, assay.type = "counts", index = "observed", name = "ARG
 TSE <- transformAssay(TSE, assay.type = "counts", method = "relabundance", MARGIN = "samples")
 
 ## --- Further metadata processing
-source("R-SCRIPTS/metadata_processing_country.R")
+source("../R-SCRIPTS/metadata_processing_country.R")
 
 filtered_data <- colData(TSE) %>%
   data.frame() %>%
@@ -221,12 +221,12 @@ filtered_data <- colData(TSE) %>%
 filtered_samples <- rownames(filtered_data)
 TSE <- TSE[ , filtered_samples]
 
-source("R-SCRIPTS/metadata_processing_bioproject.R")
+source("../R-SCRIPTS/metadata_processing_bioproject.R")
 
 # Optionally add antibiotic use data
 # source("R-SCRIPTS/metadata_processing_antibiotic_use.R")
 
-saveRDS(TSE, file = "DATA/TSE.rds")
+saveRDS(TSE, file = "../DATA/TSE.rds")
 
 rm(list  = ls())
 
@@ -234,7 +234,7 @@ rm(list  = ls())
 ## 10) Reload & finalize metadata (e.g., create age groups, etc.)
 ############################################################################
 
-TSE <- readRDS("DATA/TSE.rds")
+TSE <- readRDS("../DATA/TSE.rds")
 colData(TSE) <- colData(TSE) %>%
   as.data.frame() %>%
   mutate(age_category = dplyr::case_when(
@@ -255,7 +255,7 @@ colData(TSE) <- colData(TSE) %>%
   DataFrame()
 
 # Save final TSE
-saveRDS(TSE, file = "DATA/TSE.rds")
+saveRDS(TSE, file = "../DATA/TSE.rds")
 
 ############################################################################
 ## End

@@ -5,7 +5,7 @@ library(mia)
 library(dplyr)
 
 # Load TSE object
-TSE <- readRDS("DATA/TSE.rds")
+TSE <- readRDS("../DATA/TSE.rds")
 
 # Set seed for reproducibility
 set.seed(1235)

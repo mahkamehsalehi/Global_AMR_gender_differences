@@ -34,7 +34,7 @@ get_stars <- function(x) {
 
 ## Data **************************************** ####
 
-TSE <- readRDS("DATA/TSE_filtered.rds")
+TSE <- readRDS("../DATA/TSE_filtered.rds")
 
 df <- TSE %>% colData(TSE) %>% as.data.frame()
 
@@ -194,7 +194,7 @@ age_tukey_GDP_table <- lapply(names(age_tukey_GPD), function(f) {
   
 }) %>% 
   do.call(rbind, .)
-write.csv(age_tukey_GDP_table, "RESULTS/age_tukey_GDP_table_ARG_load.csv")
+write.csv(age_tukey_GDP_table, "../RESULTS/age_tukey_GDP_table_ARG_load.csv")
 
 
 region_tukey_GPD <- list(HIC = region_tukey_female_HIC,
@@ -274,7 +274,7 @@ region_tukey_GDP_table <- lapply(names(region_tukey_GPD), function(f) {
   
 }) %>% 
   do.call(rbind, .)
-write.csv(region_tukey_GDP_table, "RESULTS/region_tukey_GDP_table_ARG_load.csv")
+write.csv(region_tukey_GDP_table, "../RESULTS/region_tukey_GDP_table_ARG_load.csv")
 
 
 
@@ -397,7 +397,7 @@ age_tukey_GDP_table <- lapply(names(age_tukey_GPD), function(f) {
   
 }) %>% 
   do.call(rbind, .)
-write.csv(age_tukey_GDP_table, "RESULTS/age_tukey_GDP_table_shannon.csv")
+write.csv(age_tukey_GDP_table, "../RESULTS/age_tukey_GDP_table_shannon.csv")
 
 
 region_tukey_GPD <- list(HIC = region_tukey_female_HIC,
@@ -474,7 +474,7 @@ region_tukey_GDP_table <- lapply(names(region_tukey_GPD), function(f) {
   
 }) %>% 
   do.call(rbind, .)
-write.csv(region_tukey_GDP_table, "RESULTS/region_tukey_GDP_table_shannon.csv")
+write.csv(region_tukey_GDP_table, "../RESULTS/region_tukey_GDP_table_shannon.csv")
 
 
 

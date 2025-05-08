@@ -13,7 +13,7 @@ set.seed(123)
 # Data Loading and Preprocessing
 # -----------------------------
 
-TSE <- readRDS("DATA/TSE_filtered.rds")
+TSE <- readRDS("../DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
 
 metadata_hic <- tse_metadata %>%
@@ -90,7 +90,7 @@ age_arg_boxplot_lmic <- ggplot(metadata_lmic, aes(x = gender, y = ARG_div_shan, 
     panel.spacing = unit(0.5, "lines")
   )
 
-# Combine the plots and keep a single legend with tag levels as "a)", "b)", etc.
+# Combine the plots
 combined_plot <- (age_arg_boxplot_hic + labs(title = "HIC")) +
   (age_arg_boxplot_lmic + labs(title = "LMIC")) +
   plot_layout(ncol = 1, heights = c(1, 1), guides = "collect") +
@@ -209,7 +209,7 @@ lmic_stats <- lmic_effect_sizes %>%
     `Adjusted p-value`
   )
 
-# Create HIC table with updated title "c)"
+# Create HIC table
 hic_table <- ggtexttable(
   hic_stats,
   rows = NULL,
@@ -223,7 +223,7 @@ hic_table <- ggtexttable(
                 just = "left",
                 padding = unit(c(0, 0, 0, 4), "pt"))
 
-# Create LMIC table with updated title "d)"
+# Create LMIC table
 lmic_table <- ggtexttable(
   lmic_stats,
   rows = NULL,
@@ -241,7 +241,7 @@ lmic_table <- ggtexttable(
 separator <- ggdraw() + 
   draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
 
-# Combine everything vertically
+# Combine
 final_plot <- plot_grid(
   combined_plot,
   separator,
@@ -253,7 +253,7 @@ final_plot <- plot_grid(
 )
 
 # Save the final plot
-ggsave("RESULTS/FIGURES/Supplementary Figure 7.jpg", 
+ggsave("../RESULTS/FIGURES/Supplementary Figure 7.jpg", 
        final_plot, 
        width = 12, 
        height = 25,

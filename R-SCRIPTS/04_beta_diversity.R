@@ -91,6 +91,6 @@ fig4 <- ggplot(pcoa_filtered, aes(x = PC1, y = PC2, color = age_group, shape = g
 # ---------------------------
 # 5) Save Figure 4
 # ---------------------------
-CairoJPEG("RESULTS/Fig2_PCoA.png", width = 800, height = 420, quality = 100)
+CairoJPEG("../RESULTS/Fig2_PCoA.png", width = 800, height = 420, quality = 100)
 print(fig4)
 dev.off()

@@ -11,7 +11,7 @@ set.seed(123)
 # Load and preprocess data
 # ----------------------------------------------------------------------------------
 
-TSE <- readRDS("DATA/TSE_filtered.rds")
+TSE <- readRDS("../DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
 
 # - Remove samples belonging to the "Infant Study"
@@ -507,10 +507,10 @@ grid_arg <- plot_grid(
 separator_cow <- ggdraw() + 
   draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
 
-# Convert the ARG load statistics table (with manual title "e") into a grob for cowplot
+# Convert the ARG load statistics table 
 arg_table_cow <- as_grob(arg_stats_table)
 
-# Combine the grid, separator, and table into the final ARG load figure layout using cowplot
+# Combine the grid, separator, and table into the final ARG load figure layout
 final_figure_arg_cow <- plot_grid(
   grid_arg,
   separator_cow,
@@ -542,7 +542,7 @@ grid_shannon <- plot_grid(
 separator_shannon <- ggdraw() + 
   draw_line(x = c(0, 1), y = c(0.5, 0.5), color = "grey", size = 2)
 
-# Convert the Shannon statistics table (with manual title "e") into a grob
+# Convert the Shannon statistics table
 shannon_table_cow <- as_grob(shannon_stats_table)
 
 # Combine the grid, separator, and table into the final Shannon diversity figure
@@ -555,7 +555,7 @@ final_figure_shannon_cow <- plot_grid(
 )
 
 # Save the final Shannon diversity figure
-ggsave("RESULTS/FIGURES/Supplementary Figure 4.png", 
+ggsave("../RESULTS/FIGURES/Supplementary Figure 4.png", 
        final_figure_shannon_cow, 
        width = 15, 
        height = 16,

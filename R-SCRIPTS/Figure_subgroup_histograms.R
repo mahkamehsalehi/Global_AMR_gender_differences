@@ -1,7 +1,7 @@
 library(tidyverse)
 library(cowplot)
 
-source("R-SCRIPTS/prepare_data_for_lm_analysis.R")
+source("../R-SCRIPTS/prepare_data_for_lm_analysis.R")
 
 my_data <- adult_metadata %>% 
   as.data.frame() %>% 
@@ -33,7 +33,7 @@ p_N_summary <- N_summary %>%
                 
                 
 
-png("RESULTS/FIGURES/SFig_N_summary.png",
+png("../RESULTS/FIGURES/SFig_N_summary.png",
     units = "in",
     res = 500,
     height = 8,

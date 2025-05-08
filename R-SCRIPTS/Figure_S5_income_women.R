@@ -12,7 +12,7 @@ library(rstatix)
 set.seed(123)
 
 # Data Loading and Processing
-TSE <- readRDS("DATA/TSE_filtered.rds")
+TSE <- readRDS("../DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
 filtered_metadata <- tse_metadata %>%
   filter(
@@ -103,7 +103,7 @@ calc_stats <- function(data, variable) {
     test <- wilcox.test(ARG_div_shan ~ income_group, data = data)
   }
   
-  # Create results with check.names=FALSE to preserve parentheses
+  # Create results
   results <- data.frame(
     "Metric" = if(variable == "ARG_load") "ARG load" else "ARG diversity",
     "N (HIC)" = n_sizes$n_HIC,
@@ -131,7 +131,7 @@ shannon_stats <- calc_stats(filtered_metadata_female_no_outliers, "ARG_div_shan"
 # Combine results
 combined_stats <- rbind(arg_stats, shannon_stats)
 
-# Create formatted table with corrected column names
+# Create formatted table
 stats_table <- ggtexttable(combined_stats, 
                            rows = NULL,
                            theme = ttheme("light", 
@@ -173,7 +173,7 @@ final_figure <- combined_figure_income_female /
   plot_layout(heights = c(2, 0.01, NA))
 
 # Save final figure
-ggsave("RESULTS/FIGURES/Supplementary Figure 5.jpg", 
+ggsave("../RESULTS/FIGURES/Supplementary Figure 5.jpg", 
        final_figure, 
        width = 12, 
        height = 8, 

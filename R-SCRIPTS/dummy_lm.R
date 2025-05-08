@@ -38,7 +38,7 @@ get_stars_CI <- function(lower, upper) {
 
 
 # Get data in adult_metadata object
-source("R-SCRIPTS/prepare_data_for_lm_analysis.R")
+source("../R-SCRIPTS/prepare_data_for_lm_analysis.R")
 
 # ARG_load and Shannon as response
 # Log-Normal for ARG_load, Normal for Shannon
@@ -127,7 +127,7 @@ for(r in responses) {     # Loop over responses
 }
 
 # saveRDS(object = fit_list1, file = "RESULTS/FITS/dummy_lm_fit_M1.RDS")
-fit_list1 <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_M1.RDS")
+fit_list1 <- readRDS(file = "../RESULTS/FITS/dummy_lm_fit_M1.RDS")
 
 ## Results
 full_summary1 <- lapply(responses, function(r) {
@@ -232,7 +232,7 @@ for(r in responses) {     # Loop over responses
 }
 
 # saveRDS(object = fit_list2, file = "RESULTS/FITS/dummy_lm_fit_M2.RDS")
-fit_list2 <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_M2.RDS")
+fit_list2 <- readRDS(file = "../RESULTS/FITS/dummy_lm_fit_M2.RDS")
 
 ## Results
 full_summary2 <- lapply(responses, function(r) {
@@ -333,7 +333,7 @@ for(r in responses) {     # Loop over responses
 }
 
 # saveRDS(object = fit_list3, file = "RESULTS/FITS/dummy_lm_fit_M3.RDS")
-fit_list3 <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_M3.RDS")
+fit_list3 <- readRDS(file = "../RESULTS/FITS/dummy_lm_fit_M3.RDS")
 
 ## Results
 full_summary3 <- lapply(responses, function(r) {
@@ -438,7 +438,7 @@ for(r in responses) {     # Loop over responses
 }
 
 # saveRDS(object = fit_list4, file = "RESULTS/FITS/dummy_lm_fit_M4.RDS")
-fit_list4 <- readRDS(file = "RESULTS/FITS/dummy_lm_fit_M4.RDS")
+fit_list4 <- readRDS(file = "../RESULTS/FITS/dummy_lm_fit_M4.RDS")
 
 ## Results
 full_summary4 <- lapply(responses, function(r) {
@@ -539,13 +539,13 @@ full_summary <- full_summary %>%
 # full_summary_round %>% 
 #   filter(Response == "log(ARG load)") %>%
 #   select(-Response) %>% 
-#   write.csv(., "RESULTS/ARG_dummy_lm.csv")
+#   write.csv(., "../RESULTS/ARG_dummy_lm.csv")
 
 ## Shannon
 # full_summary_round %>% 
 #   filter(Response == "Shannon") %>% 
 #   select(-Response) %>% 
-#   write.csv(., "RESULTS/shannon_dummy_lm.csv")
+#   write.csv(., "../RESULTS/shannon_dummy_lm.csv")
 
 ## Plots ************************ ####
 
@@ -586,7 +586,7 @@ p <- full_summary %>%
 
 p
 
-png("RESULTS/FIGURES/Fig5_lm.png",
+png("../RESULTS/FIGURES/Fig5_lm.png",
     units = "in",
     res = 500,
     height = 7,
@@ -627,7 +627,7 @@ comparison_p <- full_summary %>%
 
 
 
-png("RESULTS/FIGURES/SFig_lm_comparison.png",
+png("../RESULTS/FIGURES/SFig_lm_comparison.png",
     units = "in",
     res = 500,
     height = 25,
@@ -659,7 +659,7 @@ comparison_table <- comparison_table %>%
 comparison_table <- comparison_table %>% 
   select(colnames(comparison_table)[c(1, 5, 6, 7, 2:4, 8:11)])
 
-write.csv(comparison_table, "RESULTS/TABLES/lm_comparison.csv")
+write.csv(comparison_table, "../RESULTS/TABLES/lm_comparison.csv")
   
 ## Shannon ************* ####
 
@@ -670,7 +670,7 @@ shannon_table <- mono_table %>%
   arrange(desc(`Income Group`))
 
 
-write.csv(shannon_table, "RESULTS/TABLES/lm_shannon.csv")
+write.csv(shannon_table, "../RESULTS/TABLES/lm_shannon.csv")
 
 
 
@@ -683,7 +683,7 @@ ARG_table <- mono_table %>%
   arrange(desc(`Income Group`))
 
 
-write.csv(ARG_table, "RESULTS/TABLES/lm_ARG.csv")
+write.csv(ARG_table, "../RESULTS/TABLES/lm_ARG.csv")
 
 
 

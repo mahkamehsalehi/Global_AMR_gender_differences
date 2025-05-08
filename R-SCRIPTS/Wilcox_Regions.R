@@ -1,12 +1,12 @@
 library(mia)
 library(tidyverse)
 library(rstatix)
-
+library(writexl)
 library(dplyr)
 library(rstatix)
 
 # Read in the TSE object
-tse <- readRDS("DATA/TSE_filtered.rds")
+tse <- readRDS("../DATA/TSE_filtered.rds")
 df <- as.data.frame(colData(tse))
 
 # Ensure geo_loc_name_country_continent_calc is a factor
@@ -64,7 +64,7 @@ library(writexl)
 # Library
 library(writexl)
 # Save the final_results as an Excel file
-write_xlsx(final_results, path = "RESULTS/Wilcox_regions.xlsx")
+write_xlsx(final_results, path = "../RESULTS/Wilcox_regions.xlsx")
 
 
 ### Shannon ####
@@ -112,10 +112,7 @@ final_results <- bind_rows(results_list, .id = "gender")
 
 # View the results for each gender
 print(final_results, n = Inf, width = Inf)
-library(writexl)
 
-# Library
-library(writexl)
 # Save the final_results as an Excel file
-write_xlsx(final_results, path = "RESULTS/Wilcox_regions_Shannon.xlsx")
+write_xlsx(final_results, path = "../RESULTS/Wilcox_regions_Shannon.xlsx")
 

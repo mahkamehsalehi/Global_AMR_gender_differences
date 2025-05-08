@@ -4,11 +4,11 @@ library(jsonlite)
 library(data.table)
 library(progress)
 
-source("R-SCRIPTS/00_functions.R")
+source("../R-SCRIPTS/00_functions.R")
 ## source("R-SCRIPTS/metadata_processing_read_JSON.R") , do not run slow
 
 # Load in processed data
-df <- read_csv("DATA/PROCESSED/Sra_metadata_processed.csv") 
+df <- read_csv("../DATA/PROCESSED/Sra_metadata_processed.csv") 
 
 sex_columns <- grep("sex", names(df), value = TRUE, ignore.case = TRUE)
 gender_columns <- grep("gender", names(df), value = TRUE, ignore.case = TRUE)

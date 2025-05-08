@@ -5,7 +5,7 @@ library(TreeSummarizedExperiment)
 # Data Loading and Initial Filtering ************************************************ ####
 
 # Load TSE object
-TSE <- readRDS("DATA/TSE_filtered.rds")
+TSE <- readRDS("../DATA/TSE_filtered.rds")
 
 # Filter samples with complete sex and age data
 non_na_samples <- !is.na(colData(TSE)$sex_combined) & !is.na(colData(TSE)$host_age_years)
