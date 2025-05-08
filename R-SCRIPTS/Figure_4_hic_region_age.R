@@ -15,7 +15,7 @@ set.seed(123)
 # -----------------------------
 # Data Loading and Preprocessing
 # -----------------------------
-TSE <- readRDS("DATA/TSE_filtered.rds")
+TSE <- readRDS("../DATA/TSE_filtered.rds")
 tse_metadata <- as.data.frame(colData(TSE))
 
 metadata_hic <- tse_metadata %>%
@@ -280,6 +280,6 @@ final_figure <- plot_grid(
 # --------------------------
 # Save the Final Figure
 # --------------------------
-CairoJPEG("RESULTS/FIGURES/Figure 4.jpg", width = 2000, height = 2000, quality = 100)
+CairoJPEG("../RESULTS/FIGURES/Figure 4.jpg", width = 2000, height = 2000, quality = 100)
 print(final_figure)
 dev.off()
